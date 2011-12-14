@@ -1,0 +1,44 @@
+<!-- Parameters in: 
+	surveysAlready (contains curveys that already have)
+	surveysMine (surveys that created by the user)
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+  <head>
+    <script type="text/javascript">
+      function show_prompt() {
+	      var name = prompt("Please enter your name","Athena");
+	      return name;
+	      if (name != null && name != "") {
+		      document.write("Hello " + name + "! How are you today?");
+	      }
+      }
+    </script>
+  </head>
+
+  <h2>Survey Website</h2></dd>
+
+  <body>
+    <dd><p>You may:</p></dd>
+    <p>1. Choose the survey you wanna vote or revote:</p>
+    {% for surveys in surveysAlready %}
+       <p><dd><u>{{ surveys }}</u></dd></p>
+    {% endfor %}
+
+    <p>2. Create or Edit your own surveys:</p>
+    {% for surveysm in surveysMine %}
+       <p><dd><u>{{ surveysm }}</u></dd></p>
+    {% endfor %}
+
+     <form>
+     <!-- <form action="/" method="post"> -->
+       <p><dd><INPUT TYPE = submit NAME = "create" VALUE = "Create Survey!"></dd></p>
+	<input type="button" onclick="name = show_prompt()" value="Show prompt box" />
+     </form> 
+
+  </body>
+</html>
