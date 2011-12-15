@@ -11,7 +11,7 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
-surveyID = ""
+suveyID = ""
 surveyIDempty = True
 addNewQ = False
 surveyIDvalid = False
@@ -40,6 +40,7 @@ class MainPage(webapp.RequestHandler):
     def get(self):
         surveysAlready = ("Video Game Survey", "Comic Survey", "Money Survey", "Video Game Survey 2")
         surveysMine = ("Video Game Survey", "Video Game Survey 2")
+
         template_values = {
             'surveysAlready': surveysAlready,
             'surveysMine': surveysMine,
@@ -176,7 +177,6 @@ class CreateSurvey(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 			# update database
 			for questionEntry in questionShows:
-#self.response.out.write(newQuestion + " <br />")				
 				if (form.has_key(str(questionEntry.questionID)+"question") and form.has_key(str(questionEntry.questionID)+"choices")):
 					self.response.out.write("question: "+form[str(questionEntry.questionID)+"question"].value +" <br />")
 					self.response.out.write("choices: "+form[str(questionEntry.questionID)+"choices"].value +" <br />")
@@ -212,18 +212,58 @@ class CreateSurvey(webapp.RequestHandler):
 				'thisQid': thisQid,
 			}
 			self.response.out.write(template.render(path, template_values))
-
-
-
-			self.response.out.write(form["choices"].value + "!! <br />")
-
 			addNewQ = False
-
-
-
+	if (form.has_key("done")):
+		for questionID in range(1,thisQid):
+			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
+				self.response.out.write("question: "+form[str(questionID)+"question"].value +" <br />")
+				self.response.out.write("choices: "+form[str(questionID)+"choices"].value +" <br />")
+				if (form.has_key(str(questionID)+"multiple")):
+					multiple = True
+				else:
+			 		multiple = False
+				
+				Questions(question = form[str(questionID)+"question"].value,
+					  choices = form[str(questionID)+"choices"].value,
+					  multiple = multiple,
+					  surveyID = surveyID,
+					  questionID = questionID,
+					  key_name=surveyID+str(questionID)).put()
+		if (form.has_key("question") and form.has_key("choices")):
+				self.response.out.write("question: "+form["question"].value +" <br />")
+				self.response.out.write("choices: "+form["choices"].value +" <br />")
+				if (form.has_key("multiple")):
+					multiple = True
+				else:
+			 		multiple = False
+				
+				Questions(question = form["question"].value,
+					  choices = form["choices"].value,
+					  multiple = multiple,
+					  surveyID = surveyID,
+					  questionID = thisQid,
+					  key_name=surveyID+str(thisQid)).put()
+		
+		
+		# for testing:
+		self.response.clear()
+		question_query = Questions.all()
+		question_query.filter("surveyID", surveyID)
+		question_query.order("questionID")
+		questionShows = question_query.fetch(100)
+		for questionEntry in questionShows:
+			self.response.out.write(str(questionEntry.questionID)+': '+ questionEntry.question + "<br />")
+			self.response.out.write("CHOICES: <br />")
+			choices = questionEntry.choices.splitlines()
+			for choice in choices:
+				self.response.out.write(choice+"<br />")
+			self.response.out.write('MULTIPLE?: '+ str(questionEntry.multiple) + "<br />")
+			self.response.out.write('SURVEYID: '+ questionEntry.surveyID + "<br />")
+			self.response.out.write("<br />")
 
 
 	# just for testing...
+	self.response.out.write("<br />*******just for testing******<br />")
 	surveyQuery = Surveys.all()	# will be deleted
 	surveyShows = surveyQuery.fetch(1000)	# will be deleted
 	self.response.out.write('Already had questions: '+ str(hadQ) + "<br />")
