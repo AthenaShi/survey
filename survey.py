@@ -50,11 +50,14 @@ class CreateSurvey(webapp.RequestHandler):
 	surveyEntrys = survey_query.fetch(1000)
 
 	surveyID = ""
+	surveyIDempty = True
 	addNewQ = False
 	surveyIDvalid = False
 	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
+
 	template_values = {
 	    'surveyID': surveyID,
+	    'surveyIDempty': surveyIDempty,
 	    'surveyIDvalid': surveyIDvalid,
 	    'addNewQ': addNewQ,
 	}
@@ -66,22 +69,42 @@ class CreateSurvey(webapp.RequestHandler):
 		# check if surveyID is valid
 		if (surveyID != ""):
 			surveyIDvalid = True
-#		for surveyIDhad in surveyEntrys:
-#			if (surveyID == surveyIDhad.surveyID):
-#				surveyIDvalid = False
+			surveyIDempty = False
+		for surveyIDhad in surveyEntrys:
+			if (surveyID == surveyIDhad.surveyID):
+				surveyIDvalid = False
 
-	if (surveyIDvalid and form.has_key("test")):
-		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 1).put()
-	
+	if (not surveyIDvalid and form.has_key("test")):
 		surveyQuery = Surveys.all()
 		surveyShows = surveyQuery.fetch(1000)
+		self.response.clear()
+		template_values = {
+			'surveyID': surveyID,
+			'surveyIDempty': surveyIDempty,
+			'surveyIDvalid': surveyIDvalid,
+			'addNewQ': addNewQ,
+		}
+		self.response.out.write(template.render(path, template_values))
 		for surveyII in surveyShows:
-# self.response.out.write("Survey Name: "+surveyII.surveyID+"; Vote Number: "+surverII.voteN+"\n")
 			voteN = str(surveyII.voteN)
 			self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")
-#self.response.out.write("Got it!\n")	
 
-		
+	if (surveyIDvalid and form.has_key("test")):
+		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0).put()
+		surveyQuery = Surveys.all()
+		surveyShows = surveyQuery.fetch(1000)
+		self.response.clear()
+		template_values = {
+			'surveyID': surveyID,
+			'surveyIDempty': surveyIDempty,
+			'surveyIDvalid': surveyIDvalid,
+			'addNewQ': addNewQ,
+		}
+		self.response.out.write(template.render(path, template_values))
+		for surveyII in surveyShows:
+			voteN = str(surveyII.voteN)
+			self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")
+
 
 
 
