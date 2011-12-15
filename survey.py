@@ -16,12 +16,14 @@ surveyIDempty = True
 addNewQ = False
 surveyIDvalid = False
 addNewQ = False
+hadQ = False
+thisQid = 1
 
 class Questions(db.Model):
-	"""Models anquestion entry with question, choices, exclusive, answers, userID, surveyID, questionID."""
+	"""Models anquestion entry with question, choices, multiple, answers, userID, surveyID, questionID."""
 	question = db.StringProperty()
 	choices = db.StringProperty(multiline=True)
-	exclusive = db.BooleanProperty()
+	multiple = db.BooleanProperty()
 	answers = db.StringProperty()
 	userID = db.UserProperty()
 	surveyID = db.StringProperty()
@@ -47,7 +49,20 @@ class MainPage(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
 	if (form.has_key("create")):
-		self.response.out.write("Got it!")
+		global surveyID
+		global surveyIDempty
+		global addNewQ
+		global surveyIDvalid
+		global addNewQ
+		global hadQ
+		global thisQid
+		surveyID = ""
+		surveyIDempty = True
+		addNewQ = False
+		surveyIDvalid = False
+		addNewQ = False
+		hadQ = False
+		thisQid = 1
 		self.redirect('/create')
 
 class CreateSurvey(webapp.RequestHandler):
@@ -60,6 +75,9 @@ class CreateSurvey(webapp.RequestHandler):
 	global addNewQ
 	global surveyIDvalid
 	global addNewQ
+	global hadQ
+	global thisQid
+
 	template_values = {
 	    'surveyID': surveyID,
 	    'surveyIDempty': surveyIDempty,
@@ -69,7 +87,8 @@ class CreateSurvey(webapp.RequestHandler):
 	self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
 	# update surveyID and surveyID valid boolean
-	if (form.has_key("surveyID") and not surveyIDvalid):
+	if (form.has_key("surveyID") and not surveyIDvalid and surveyIDempty):
+		addNewQ = False
 		surveyID =  form["surveyID"].value
 		# check if surveyID is valid
 		if (surveyID != ""):
@@ -90,6 +109,7 @@ class CreateSurvey(webapp.RequestHandler):
 		self.response.out.write(template.render(path, template_values))
 	# if surveyID is valid
 	if (surveyIDvalid and form.has_key("test")):
+		addNewQ = False
 		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0).put()
 		self.response.clear()
 		template_values = {
@@ -99,24 +119,106 @@ class CreateSurvey(webapp.RequestHandler):
 			'addNewQ': addNewQ,
 		}
 		self.response.out.write(template.render(path, template_values))
-	# add new questions...
-	
+	# add new questions...	
 	if (form.has_key("add")):
 		addNewQ = True
-#			question_query = Questions.all()
-#			question_query.filter("surveyID", surveyID)
-#			question_query.order("questionID")
-#			questionShows = question_query.fetch(100)
-#			template_values = {
-#				'surveyID': surveyID,
-#				'surveyIDempty': surveyIDempty,
-#				'surveyIDvalid': surveyIDvalid,
-#				'addNewQ': addNewQ,
-#				'questionShows': questionShows
-#			}
-#			self.response.out.write(template.render(path, template_values))
-#			self.response.out.write('addNewQ: '+ str(addNewQ) + "<br />")
-		self.response.out.write("Add new question: "+ str(addNewQ)+" <br />")
+		self.response.clear()
+		question_query = Questions.all()
+		question_query.filter("surveyID", surveyID)
+		question_query.order("questionID")
+		questionShows = question_query.fetch(100)
+		for question in questionShows:
+			if (question.questionID):
+				hadQ = True
+				thisQid = question.questionID + 1
+		template_values = {
+			'surveyID': surveyID,
+			'surveyIDempty': surveyIDempty,
+			'surveyIDvalid': surveyIDvalid,
+			'addNewQ': addNewQ,
+			'questionShows': questionShows,
+			'hadQ': hadQ,
+			'thisQid': thisQid,
+		}
+		self.response.out.write(template.render(path, template_values))
+		# update database
+		if (form.has_key("question") and form.has_key("choices")):
+			if (form.has_key("multiple")):
+				multiple = True
+			else:
+			 	multiple = False
+			# should add a message here!!!
+			Questions(question = form["question"].value,
+				  choices = form["choices"].value,
+				  multiple = multiple,
+				  surveyID = surveyID,
+				  questionID = thisQid,
+				  key_name=surveyID+str(thisQid)).put()
+			# set site consistant with database
+			self.response.clear()
+			question_query = Questions.all()
+			question_query.filter("surveyID", surveyID)
+			question_query.order("questionID")
+			questionShows = question_query.fetch(100)
+			for question in questionShows:
+				if (question.questionID):
+					hadQ = True
+					thisQid = question.questionID + 1
+			template_values = {
+				'surveyID': surveyID,
+				'surveyIDempty': surveyIDempty,
+				'surveyIDvalid': surveyIDvalid,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'hadQ': hadQ,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+			# update database
+			for questionEntry in questionShows:
+#self.response.out.write(newQuestion + " <br />")				
+				if (form.has_key(str(questionEntry.questionID)+"question") and form.has_key(str(questionEntry.questionID)+"choices")):
+					self.response.out.write("question: "+form[str(questionEntry.questionID)+"question"].value +" <br />")
+					self.response.out.write("choices: "+form[str(questionEntry.questionID)+"choices"].value +" <br />")
+					if (form.has_key(str(questionEntry.questionID)+"multiple")):
+						multiple = True
+					else:
+				 		multiple = False
+				
+					Questions(question = form[str(questionEntry.questionID)+"question"].value,
+						  choices = form[str(questionEntry.questionID)+"choices"].value,
+						  multiple = multiple,
+						  surveyID = surveyID,
+						  questionID = questionEntry.questionID,
+						  key_name=surveyID+str(questionEntry.questionID)).put()
+			# set site consistant with database
+			self.response.clear()
+			question_query = Questions.all()
+			question_query.filter("surveyID", surveyID)
+			question_query.order("questionID")
+			questionShows = question_query.fetch(100)
+
+			for question in questionShows:
+				if (question.questionID):
+					hadQ = True
+					thisQid = question.questionID + 1
+			template_values = {
+				'surveyID': surveyID,
+				'surveyIDempty': surveyIDempty,
+				'surveyIDvalid': surveyIDvalid,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'hadQ': hadQ,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+
+
+
+			self.response.out.write(form["choices"].value + "!! <br />")
+
+			addNewQ = False
+
 
 
 
@@ -124,6 +226,8 @@ class CreateSurvey(webapp.RequestHandler):
 	# just for testing...
 	surveyQuery = Surveys.all()	# will be deleted
 	surveyShows = surveyQuery.fetch(1000)	# will be deleted
+	self.response.out.write('Already had questions: '+ str(hadQ) + "<br />")
+	self.response.out.write('Last question ID: '+ str(thisQid) + "<br />")
 	for surveyII in surveyShows:	# will be deleted
 		voteN = str(surveyII.voteN)	# will be deleted
 		self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")	# will be deleted
@@ -132,6 +236,7 @@ class CreateSurvey(webapp.RequestHandler):
 	sIv = str(surveyIDvalid)
 	self.response.out.write('surveyIDempty: '+ sIe + "<br />")
 	self.response.out.write('surveyIDvalid: '+ sIv + "<br />")
+	self.response.out.write('addNewQ: '+ str(addNewQ) + "<br />")
 
 
 
