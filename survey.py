@@ -11,6 +11,12 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
+surveyID = ""
+surveyIDempty = True
+addNewQ = False
+surveyIDvalid = False
+addNewQ = False
+
 class Questions(db.Model):
 	"""Models anquestion entry with question, choices, exclusive, answers, userID, surveyID, questionID."""
 	question = db.StringProperty()
@@ -48,13 +54,12 @@ class CreateSurvey(webapp.RequestHandler):
     def get(self):
 	survey_query = Surveys.all()
 	surveyEntrys = survey_query.fetch(1000)
-
-	surveyID = ""
-	surveyIDempty = True
-	addNewQ = False
-	surveyIDvalid = False
 	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
-
+	global surveyID
+	global surveyIDempty
+	global addNewQ
+	global surveyIDvalid
+	global addNewQ
 	template_values = {
 	    'surveyID': surveyID,
 	    'surveyIDempty': surveyIDempty,
@@ -63,7 +68,7 @@ class CreateSurvey(webapp.RequestHandler):
 	}
 	self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
-		# update surveyID and surveyID valid boolean
+	# update surveyID and surveyID valid boolean
 	if (form.has_key("surveyID") and not surveyIDvalid):
 		surveyID =  form["surveyID"].value
 		# check if surveyID is valid
@@ -73,10 +78,8 @@ class CreateSurvey(webapp.RequestHandler):
 		for surveyIDhad in surveyEntrys:
 			if (surveyID == surveyIDhad.surveyID):
 				surveyIDvalid = False
-
+	# if suveryID is duplicated...
 	if (not surveyIDvalid and form.has_key("test")):
-		surveyQuery = Surveys.all()
-		surveyShows = surveyQuery.fetch(1000)
 		self.response.clear()
 		template_values = {
 			'surveyID': surveyID,
@@ -85,14 +88,9 @@ class CreateSurvey(webapp.RequestHandler):
 			'addNewQ': addNewQ,
 		}
 		self.response.out.write(template.render(path, template_values))
-		for surveyII in surveyShows:
-			voteN = str(surveyII.voteN)
-			self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")
-
+	# if surveyID is valid
 	if (surveyIDvalid and form.has_key("test")):
 		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0).put()
-		surveyQuery = Surveys.all()
-		surveyShows = surveyQuery.fetch(1000)
 		self.response.clear()
 		template_values = {
 			'surveyID': surveyID,
@@ -101,9 +99,39 @@ class CreateSurvey(webapp.RequestHandler):
 			'addNewQ': addNewQ,
 		}
 		self.response.out.write(template.render(path, template_values))
-		for surveyII in surveyShows:
-			voteN = str(surveyII.voteN)
-			self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")
+	# add new questions...
+	
+	if (form.has_key("add")):
+		addNewQ = True
+#			question_query = Questions.all()
+#			question_query.filter("surveyID", surveyID)
+#			question_query.order("questionID")
+#			questionShows = question_query.fetch(100)
+#			template_values = {
+#				'surveyID': surveyID,
+#				'surveyIDempty': surveyIDempty,
+#				'surveyIDvalid': surveyIDvalid,
+#				'addNewQ': addNewQ,
+#				'questionShows': questionShows
+#			}
+#			self.response.out.write(template.render(path, template_values))
+#			self.response.out.write('addNewQ: '+ str(addNewQ) + "<br />")
+		self.response.out.write("Add new question: "+ str(addNewQ)+" <br />")
+
+
+
+
+	# just for testing...
+	surveyQuery = Surveys.all()	# will be deleted
+	surveyShows = surveyQuery.fetch(1000)	# will be deleted
+	for surveyII in surveyShows:	# will be deleted
+		voteN = str(surveyII.voteN)	# will be deleted
+		self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")	# will be deleted
+	self.response.out.write('surveyID: '+ surveyID + "<br />")
+	sIe = str(surveyIDempty)
+	sIv = str(surveyIDvalid)
+	self.response.out.write('surveyIDempty: '+ sIe + "<br />")
+	self.response.out.write('surveyIDvalid: '+ sIv + "<br />")
 
 
 

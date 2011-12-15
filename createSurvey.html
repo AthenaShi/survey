@@ -23,12 +23,13 @@
         <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
         <p><dd><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
       {% else %}
-         <p>Survey NAME:</p>
-         <dd><p>{{ surveyID }}</p></dd>
+        <p>Survey NAME:</p>
+        <dd><p>{{ surveyID }}</p></dd>
+        <p><dd><INPUT TYPE = submit NAME = "add" VALUE = "Add Question!"></dd></p>
       {% endif %} {% endif %}
 
      <!-- <form action="/" method="post"> -->
-       <p><dd><INPUT TYPE = submit NAME = "create" VALUE = "Create Survey!"></dd></p>
+       <p><dd><INPUT TYPE = submit NAME = "done" VALUE = "Done!"></dd></p>
      </form> 
      
 
