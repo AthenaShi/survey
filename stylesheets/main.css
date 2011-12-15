@@ -1,4 +1,11 @@
 body {
   font-family: Verdana, Helvetica, sans-serif;
+  font-size: 15px;
   background-color: #C6DEFF;
+}
+
+h2
+{
+color:purple;
+text-align:center;
 }

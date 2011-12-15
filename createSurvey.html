@@ -9,24 +9,18 @@
 
 <html>
 
-  <h2>Survey Website</h2></dd>
+  <h2>Create Survey</h2></dd>
 
   <body>
-    <dd><p>You may:</p></dd>
-    <p>1. Choose the survey you wanna vote or revote:</p>
-    {% for surveys in surveysAlready %}
-       <p><dd><u>{{ surveys }}</u></dd></p>
-    {% endfor %}
+    <form>
+        <dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>
+        <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
+        <p><dd><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
 
-    <p>2. Create or Edit your own surveys:</p>
-    {% for surveysm in surveysMine %}
-       <p><dd><u>{{ surveysm }}</u></dd></p>
-    {% endfor %}
-
-     <form>
      <!-- <form action="/" method="post"> -->
        <p><dd><INPUT TYPE = submit NAME = "create" VALUE = "Create Survey!"></dd></p>
      </form> 
+     
 
   </body>
 </html>

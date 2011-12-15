@@ -1,0 +1,36 @@
+<!-- Parameters in: 
+	surveysAlready (contains curveys that already have)
+	surveysMine (surveys that created by the user)
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+
+  <h2>Create Survey</h2></dd>
+
+  <body>
+    <form> 
+<!--      {% if surveyID == "" %} -->
+        <dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>
+        <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
+        <p><dd><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
+<!--      {% elif not surveyIDvalid %}
+        <dd><p>Your survey NAME is duplicated with what we have. Sorry you must change another one...</p></dd>
+	<dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>
+        <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
+        <p><dd><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
+      {% else %}
+         <dd><p>Survey NAME: {{ surveyID }}. </p></dd> -->
+ <!--     {% endif %} -->
+
+
+     <!-- <form action="/" method="post"> -->
+       <p><dd><INPUT TYPE = submit NAME = "create" VALUE = "Create Survey!"></dd></p>
+     </form> 
+     
+
+  </body>
+</html>

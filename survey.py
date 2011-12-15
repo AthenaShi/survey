@@ -11,6 +11,23 @@ from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 
+class Questions(db.Model):
+	"""Models anquestion entry with question, choices, exclusive, answers, userID, surveyID, questionID."""
+	question = db.StringProperty()
+	choices = db.StringProperty(multiline=True)
+	exclusive = db.BooleanProperty()
+	answers = db.StringProperty()
+	userID = db.UserProperty()
+	surveyID = db.StringProperty()
+	questionID = db.IntegerProperty()
+
+class Surveys(db.Model):
+	"""Models a survey entry with surveyID, voteN, createDate, LastVoteDate."""
+	surveyID = db.StringProperty()
+	voteN = db.IntegerProperty()
+	createDate = db.DateTimeProperty()
+	LastVoteDate = db.DateTimeProperty()
+
 class MainPage(webapp.RequestHandler):
     def get(self):
         surveysAlready = ("Video Game Survey", "Comic Survey", "Money Survey", "Video Game Survey 2")
@@ -22,13 +39,56 @@ class MainPage(webapp.RequestHandler):
 
         path = os.path.join(os.path.dirname(__file__), 'mainPage.html')
         self.response.out.write(template.render(path, template_values))
-#	form = cgi.FieldStorage()
-#	if (form.has_key("create")):
-#		self.response.out.write("Got it!")
+	form = cgi.FieldStorage()
+	if (form.has_key("create")):
+		self.response.out.write("Got it!")
+		self.redirect('/create')
+
+class CreateSurvey(webapp.RequestHandler):
+    def get(self):
+	survey_query = Surveys.all()
+	surveyEntrys = survey_query.fetch(1000)
+
+	surveyID = ""
+	addNewQ = False
+	surveyIDvalid = False
+	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
+	template_values = {
+	    'surveyID': surveyID,
+	    'surveyIDvalid': surveyIDvalid,
+	    'addNewQ': addNewQ,
+	}
+	self.response.out.write(template.render(path, template_values))
+	form = cgi.FieldStorage()
+		# update surveyID and surveyID valid boolean
+	if (form.has_key("surveyID") and not surveyIDvalid):
+		surveyID =  form["surveyID"].value
+		# check if surveyID is valid
+		if (surveyID != ""):
+			surveyIDvalid = True
+#		for surveyIDhad in surveyEntrys:
+#			if (surveyID == surveyIDhad.surveyID):
+#				surveyIDvalid = False
+
+	if (surveyIDvalid and form.has_key("test")):
+		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 1).put()
+	
+		surveyQuery = Surveys.all()
+		surveyShows = surveyQuery.fetch(1000)
+		for surveyII in surveyShows:
+# self.response.out.write("Survey Name: "+surveyII.surveyID+"; Vote Number: "+surverII.voteN+"\n")
+			voteN = str(surveyII.voteN)
+			self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")
+#self.response.out.write("Got it!\n")	
+
+		
+
+
 
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
+  ('/create', CreateSurvey),
 ], debug=True)
 
 
