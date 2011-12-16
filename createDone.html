@@ -1,0 +1,43 @@
+<!-- Parameters in:
+	surveyID
+	questionShows
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+
+  <h2>Successfully Created!</h2>
+
+  <body>
+    <p>Congratulations!  You have successfully created your survey.  The following is the full virsion of your questions.  You can edit them in the main page.</p>
+
+    <h3>{{ surveyID }}</h3>
+
+    {% for questionEntry in questionShows %}
+      <p>Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</p>
+
+      <input type="hidden" id="{{questionEntry.questionID}}" name="variable" value="{{ questionEntry.choices }}">
+      <script type="text/javascript">
+      var choiceLine = document.getElementById("{{questionEntry.questionID}}").value;
+      var choices = choiceLine.split("\n");
+      var multiple = "{{questionEntry.multiple}}";
+      for (var i=0; i<choices.length; i++) {
+        if (multiple == "False") {
+          document.write("<dd><p><input type=\"radio\" name=\"option\">"+ choices[i] +"</p></dd>");
+        } else {
+          document.write("<dd><p><input type=\"checkbox\" name=\"selection\">"+ choices[i] +"</p></dd>");
+        }
+      }
+      </script>
+
+    {% endfor %}
+
+     <form>
+       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to Survey Website"></dd></p>
+     </form> 
+
+  </body>
+</html>

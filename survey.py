@@ -246,11 +246,12 @@ class CreateSurvey(webapp.RequestHandler):
 		
 		
 		# for testing:
-		self.response.clear()
+		#self.response.clear()
 		question_query = Questions.all()
 		question_query.filter("surveyID", surveyID)
 		question_query.order("questionID")
 		questionShows = question_query.fetch(100)
+
 		for questionEntry in questionShows:
 			self.response.out.write(str(questionEntry.questionID)+': '+ questionEntry.question + "<br />")
 			self.response.out.write("CHOICES: <br />")
@@ -260,6 +261,15 @@ class CreateSurvey(webapp.RequestHandler):
 			self.response.out.write('MULTIPLE?: '+ str(questionEntry.multiple) + "<br />")
 			self.response.out.write('SURVEYID: '+ questionEntry.surveyID + "<br />")
 			self.response.out.write("<br />")
+
+		self.response.clear()
+		template_values = {
+				'surveyID': surveyID,
+				'questionShows': questionShows,
+		}
+		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
+		self.response.out.write(template.render(path, template_values))
+
 
 
 	# just for testing...
