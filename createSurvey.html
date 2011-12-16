@@ -20,7 +20,7 @@
     <form>
       {% if surveyIDempty and not addNewQ%}
         <dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>
-        <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
+        <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100" value = "{{ surveyID }}"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
         <p><dd><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
       {% else %} {% if not surveyIDvalid and not addNewQ%}
         <dd><p>Your survey NAME is the same with what we have!</p></dd>

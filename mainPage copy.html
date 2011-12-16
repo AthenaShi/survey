@@ -1,6 +1,6 @@
 <!-- Parameters in: 
-	surveyEntrysAll (contains curveys that already have)
-	surveyEntrysUser (surveys that created by the user)
+	surveysAlready (contains curveys that already have)
+	surveysMine (surveys that created by the user)
 -->
 
 <head>
@@ -14,13 +14,13 @@
   <body>
     <dd><p>You may:</p></dd>
     <p>1. Choose the survey you wanna vote or revote:</p>
-    {% for surveyE in surveyEntrysAll %}
-       <p><dd><a href="/vote?surveyID={{ surveyE.surveyID }}">{{ surveyE.surveyID }}</a></dd></p>
+    {% for surveys in surveysAlready %}
+       <p><dd><u>{{ surveys }}</u></dd></p>
     {% endfor %}
 
-    <p>2. Edit or Create your own surveys:</p>
-    {% for surveysU in surveyEntrysUser %}
-       <p><dd><a href="/edit?surveyID={{ surveysU.surveyID }}">{{ surveysU.surveyID }}</a></dd></p>
+    <p>2. Create or Edit your own surveys:</p>
+    {% for surveysm in surveysMine %}
+       <p><dd><u>{{ surveysm }}</u></dd></p>
     {% endfor %}
 
      <form>

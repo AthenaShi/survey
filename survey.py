@@ -24,7 +24,7 @@ class Questions(db.Model):
 	question = db.StringProperty()
 	choices = db.StringProperty(multiline=True)
 	multiple = db.BooleanProperty()
-	answers = db.StringProperty()
+	answers = db.StringProperty(multiline=True)
 	userID = db.UserProperty()
 	surveyID = db.StringProperty()
 	questionID = db.IntegerProperty()
@@ -36,20 +36,73 @@ class Surveys(db.Model):
 	createDate = db.DateTimeProperty()
 	LastVoteDate = db.DateTimeProperty()
 
+class Votes(db.Model):
+	"""Models a survey entry with surveyID, voteN, createDate, LastVoteDate."""
+	userID = db.UserProperty()
+	surveyID = db.StringProperty()
+	result = db.StringProperty()
+
+class VoteSurvey(webapp.RequestHandler):
+    def get(self):
+	# Show survey questions and choices and let vote!
+	form = cgi.FieldStorage()
+	surveyID = form["surveyID"].value
+
+	question_query = Questions.all()
+	question_query.filter("surveyID", surveyID)
+	question_query.order("questionID")
+	questionShows = question_query.fetch(100)
+
+	template_values = {
+		'surveyID': surveyID,
+		'questionShows': questionShows,
+	}
+	path = os.path.join(os.path.dirname(__file__), 'vote.html')
+	self.response.out.write(template.render(path, template_values))
+	# Record vote results
+	if (form.has_key("vote")):
+		for questionEntry in questionShows:
+			questionID = questionEntry.questionID
+			self.response.out.write(questionEntry.question+"<br />")
+			i = 0
+			answer = []
+			choices = questionEntry.choices.splitlines()
+			answers = questionEntry.answers.splitlines()
+			self.response.out.write(questionEntry.answers+" <br />")
+			for choice in choices:
+				if (form.has_key("selection,"+str(questionID)+","+str(i))):
+					answers[i] = str(int(answers[i])+1)
+					self.response.out.write(choice+"---Yes---:"+answers[i]+" <br />")
+				else:
+					self.response.out.write(choice+"---No---:"+answers[i]+" <br />")
+				i = i+1
+			answersUpdate = "\n".join(answers)
+			questionEntry.answers = answersUpdate
+			questionEntry.put()
+
 class MainPage(webapp.RequestHandler):
     def get(self):
-        surveysAlready = ("Video Game Survey", "Comic Survey", "Money Survey", "Video Game Survey 2")
-        surveysMine = ("Video Game Survey", "Video Game Survey 2")
+	# get all surveyIDs we already have
+	survey_queryAll = Surveys.all()
+	# survey_queryAll.order("")	Can be changed according to the display order...........
+	surveyEntrysAll = survey_queryAll.fetch(1000)
 
+	# get all surveyIDs the login user have access to...
+	survey_queryUser = Surveys.all()	#will be changed according to the user ID
+	# survey_queryUser .order("")	Can be changed according to the display order...........
+	surveyEntrysUser = survey_queryUser.fetch(1000)
+
+	# url = "/vote?surveyID=helloAthena"
         template_values = {
-            'surveysAlready': surveysAlready,
-            'surveysMine': surveysMine,
+            'surveyEntrysAll': surveyEntrysAll,
+            'surveyEntrysUser': surveyEntrysUser,
         }
-
         path = os.path.join(os.path.dirname(__file__), 'mainPage.html')
         self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
+
 	if (form.has_key("create")):
+		self.redirect('/create')
 		global surveyID
 		global surveyIDempty
 		global addNewQ
@@ -64,13 +117,9 @@ class MainPage(webapp.RequestHandler):
 		addNewQ = False
 		hadQ = False
 		thisQid = 1
-		self.redirect('/create')
 
 class CreateSurvey(webapp.RequestHandler):
     def get(self):
-	survey_query = Surveys.all()
-	surveyEntrys = survey_query.fetch(1000)
-	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
 	global surveyID
 	global surveyIDempty
 	global addNewQ
@@ -79,6 +128,10 @@ class CreateSurvey(webapp.RequestHandler):
 	global hadQ
 	global thisQid
 
+	survey_query = Surveys.all()
+	surveyEntrys = survey_query.fetch(1000)
+
+	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
 	template_values = {
 	    'surveyID': surveyID,
 	    'surveyIDempty': surveyIDempty,
@@ -108,6 +161,16 @@ class CreateSurvey(webapp.RequestHandler):
 			'addNewQ': addNewQ,
 		}
 		self.response.out.write(template.render(path, template_values))
+		if (form.has_key("surveyID") and not surveyIDvalid):
+			addNewQ = False
+			surveyID =  form["surveyID"].value
+			# check if surveyID is valid
+			if (surveyID != ""):
+				surveyIDvalid = True
+				surveyIDempty = False
+			for surveyIDhad in surveyEntrys:
+				if (surveyID == surveyIDhad.surveyID):
+					surveyIDvalid = False
 	# if surveyID is valid
 	if (surveyIDvalid and form.has_key("test")):
 		addNewQ = False
@@ -216,51 +279,46 @@ class CreateSurvey(webapp.RequestHandler):
 	if (form.has_key("done")):
 		for questionID in range(1,thisQid):
 			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
-				self.response.out.write("question: "+form[str(questionID)+"question"].value +" <br />")
-				self.response.out.write("choices: "+form[str(questionID)+"choices"].value +" <br />")
-				if (form.has_key(str(questionID)+"multiple")):
+				question = form[str(questionID)+"question"].value	# question
+				choices = form[str(questionID)+"choices"].value		# choices
+				if (form.has_key(str(questionID)+"multiple")):		# multiple
 					multiple = True
 				else:
 			 		multiple = False
-				
-				Questions(question = form[str(questionID)+"question"].value,
-					  choices = form[str(questionID)+"choices"].value,
+
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				# final update of the creation	
+				Questions(question = question,
+					  choices = choices,
 					  multiple = multiple,
+					  answers = answers,
 					  surveyID = surveyID,
 					  questionID = questionID,
 					  key_name=surveyID+str(questionID)).put()
 		if (form.has_key("question") and form.has_key("choices")):
-				self.response.out.write("question: "+form["question"].value +" <br />")
-				self.response.out.write("choices: "+form["choices"].value +" <br />")
+				choices = form["choices"].value
 				if (form.has_key("multiple")):
 					multiple = True
 				else:
 			 		multiple = False
-				
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				# final update of the creation
 				Questions(question = form["question"].value,
 					  choices = form["choices"].value,
 					  multiple = multiple,
+					  answers = answers,
 					  surveyID = surveyID,
 					  questionID = thisQid,
 					  key_name=surveyID+str(thisQid)).put()
 		
-		
-		# for testing:
-		#self.response.clear()
 		question_query = Questions.all()
 		question_query.filter("surveyID", surveyID)
 		question_query.order("questionID")
 		questionShows = question_query.fetch(100)
-
-		for questionEntry in questionShows:
-			self.response.out.write(str(questionEntry.questionID)+': '+ questionEntry.question + "<br />")
-			self.response.out.write("CHOICES: <br />")
-			choices = questionEntry.choices.splitlines()
-			for choice in choices:
-				self.response.out.write(choice+"<br />")
-			self.response.out.write('MULTIPLE?: '+ str(questionEntry.multiple) + "<br />")
-			self.response.out.write('SURVEYID: '+ questionEntry.surveyID + "<br />")
-			self.response.out.write("<br />")
 
 		self.response.clear()
 		template_values = {
@@ -269,8 +327,9 @@ class CreateSurvey(webapp.RequestHandler):
 		}
 		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
 		self.response.out.write(template.render(path, template_values))
-
-
+	
+	if (form.has_key("back")):
+		self.redirect('/')
 
 	# just for testing...
 	self.response.out.write("<br />*******just for testing******<br />")
@@ -288,13 +347,10 @@ class CreateSurvey(webapp.RequestHandler):
 	self.response.out.write('surveyIDvalid: '+ sIv + "<br />")
 	self.response.out.write('addNewQ: '+ str(addNewQ) + "<br />")
 
-
-
-
-
 application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/create', CreateSurvey),
+  ('/vote', VoteSurvey),
 ], debug=True)
 
 

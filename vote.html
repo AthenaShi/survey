@@ -9,12 +9,15 @@
 
 <html>
 
-  <h2>Successfully Created!</h2>
+<!--  <h2>Vote</h2> -->
+  <h3>{{surveyID}}</h3>
 
   <body>
-    <p>Congratulations!  You have successfully created your survey.  The following is the full virsion of your questions.  You can edit them in the main page.</p>
+    <form>
 
-    <h3>{{ surveyID }}</h3>
+    <input type="hidden" name="surveyID" value="{{surveyID}}">
+    <input type="hidden" name="lala" value="firstValue">
+    <input type="hidden" name="lala" value="secondValue">
 
     {% for questionEntry in questionShows %}
       <p>Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</p>
@@ -24,20 +27,20 @@
       var choiceLine = document.getElementById("{{questionEntry.questionID}}").value;
       var choices = choiceLine.split("\n");
       var multiple = "{{questionEntry.multiple}}";
+      var questionID = "{{questionEntry.questionID}}";
       for (var i=0; i<choices.length; i++) {
         if (multiple == "False") {
-          document.write("<dd><p><input type=\"radio\" name=\"option\">"+ choices[i] +"</p></dd>");
+          document.write("<dd><p><input type=\"radio\" name=\"selection,"+ questionID +","+ i +"\">"+ choices[i] +"</p></dd>");
         } else {
-          document.write("<dd><p><input type=\"checkbox\" name=\"selection\">"+ choices[i] +"</p></dd>");
+          document.write("<dd><p><input type=\"checkbox\" name=\"selection,"+ questionID +","+ i +"\">"+ choices[i] +"</p></dd>");
         }
       }
       </script>
 
     {% endfor %}
 
-     <form>
-       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to main page!"></dd></p>
-     </form> 
+       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Cancel"><INPUT TYPE = submit NAME = "vote" VALUE = "View Results"></dd></p>
+    </form> 
 
   </body>
 </html>
