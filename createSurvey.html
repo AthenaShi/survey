@@ -17,6 +17,7 @@
   <h2>Create Survey</h2></dd>
 
   <body>
+    <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
     <form>
       {% if surveyIDempty and not addNewQ%}
         <dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>

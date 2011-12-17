@@ -8,11 +8,10 @@
 </head>
 
 <html>
-
   <h2>Survey Result</h2>
-  <h3>{{surveyID}}</h3>
-
   <body>
+    <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
+  <h3>{{surveyID}}</h3>
     <form>
 	<table>
     <input type="hidden" name="surveyID" value="{{surveyID}}">
@@ -28,7 +27,7 @@
       var answers = answerLine.split("\n");
       var questionID = "{{questionEntry.questionID}}";
 
-      document.write("<tr><th colspan=\"2\" height=\"50\" style=\"text-align:left;;color:black\">Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</th>");
+      document.write("<tr><th colspan=\"2\" height=\"50\" style=\"text-align:left;color:black\">Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</th>");
       // get max value of each multiple choice question OR the sum of each single choice question
       var allORmax = 0;
       document.write("<tr><td colspan=\"2\" style=\"text-align:center\">");

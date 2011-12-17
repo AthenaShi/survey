@@ -9,4 +9,5 @@ handlers:
 
 - url: /.*
   script: survey.py
+  login: required
 

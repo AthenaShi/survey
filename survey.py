@@ -47,15 +47,24 @@ class EditSurvey(webapp.RequestHandler):
 	# Show survey questions and choices and let vote!
 	form = cgi.FieldStorage()
 	surveyID = form["surveyID"].value
-
-	question_query = Questions.all()
-	question_query.filter("surveyID", surveyID)
-	question_query.order("questionID")
-	questionShows = question_query.fetch(100)
-
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"! "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+	# get question need to show
+	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 	path = os.path.join(os.path.dirname(__file__), 'editSurvey.html')
 	addNewQ = False
 	template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
 			'surveyID': surveyID,
 			'addNewQ': addNewQ,
 			'questionShows': questionShows,
@@ -71,14 +80,14 @@ class EditSurvey(webapp.RequestHandler):
 	if (form.has_key("add")):
 		addNewQ = True
 		self.response.clear()
-		question_query = Questions.all()
-		question_query.filter("surveyID", surveyID)
-		question_query.order("questionID")
-		questionShows = question_query.fetch(100)
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		for question in questionShows:
 			if (question.questionID):
 				thisQid = question.questionID + 1
 		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
 			'surveyID': surveyID,
 			'addNewQ': addNewQ,
 			'questionShows': questionShows,
@@ -100,14 +109,14 @@ class EditSurvey(webapp.RequestHandler):
 				  key_name=surveyID+str(thisQid)).put()
 			# set site consistant with database
 			self.response.clear()
-			question_query = Questions.all()
-			question_query.filter("surveyID", surveyID)
-			question_query.order("questionID")
-			questionShows = question_query.fetch(100)
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 			for question in questionShows:
 				if (question.questionID):
 					thisQid = question.questionID + 1
 			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
 				'surveyID': surveyID,
 				'addNewQ': addNewQ,
 				'questionShows': questionShows,
@@ -129,15 +138,15 @@ class EditSurvey(webapp.RequestHandler):
 						  key_name=surveyID+str(questionEntry.questionID)).put()
 			# set site consistant with database
 			self.response.clear()
-			question_query = Questions.all()
-			question_query.filter("surveyID", surveyID)
-			question_query.order("questionID")
-			questionShows = question_query.fetch(100)
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 
 			for question in questionShows:
 				if (question.questionID):
 					thisQid = question.questionID + 1
 			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
 				'surveyID': surveyID,
 				'addNewQ': addNewQ,
 				'questionShows': questionShows,
@@ -182,22 +191,22 @@ class EditSurvey(webapp.RequestHandler):
 					  questionID = thisQid,
 					  key_name=surveyID+str(thisQid)).put()
 		# reset Surveys database
-		surveyToUpdate = Surveys.all().filter("surveyID", surveyID).fetch(1)
+		surveyToUpdate = Surveys.all().filter("surveyID", surveyID)
 		for surveyEntry in surveyToUpdate:
 			surveyEntry.voteN = 0
 			surveyEntry.CreateDate = datetime.datetime.now()
 			surveyEntry.put()
 		# update Votes database
-		votes4surveyID = Votes.all().filter("surveyID", surveyID).fetch(1000000000)
+		votes4surveyID = Votes.all().filter("surveyID", surveyID)
 		for vote4surveyID in votes4surveyID:
 			vote4surveyID.delete()
 		# show edit result page
-		question_query = Questions.all()
-		question_query.filter("surveyID", surveyID)
-		question_query.order("questionID")
-		questionShows = question_query.fetch(100)
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		self.response.clear()
 		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
 			'surveyID': surveyID,
 			'questionShows': questionShows,
 		}
@@ -211,13 +220,22 @@ class ShowResults(webapp.RequestHandler):
 	# Show survey questions and choices and let vote!
 	form = cgi.FieldStorage()
 	surveyID = form["surveyID"].value
-
-	question_query = Questions.all()
-	question_query.filter("surveyID", surveyID)
-	question_query.order("questionID")
-	questionShows = question_query.fetch(100)
-
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"! "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+	# get questions to show
+	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 	template_values = {
+		'greeting': greeting,
+		'url': url,
+		'url_linktext': url_linktext,
 		'surveyID': surveyID,
 		'questionShows': questionShows,
 	}
@@ -231,13 +249,22 @@ class VoteSurvey(webapp.RequestHandler):
 	# Show survey questions and choices and let vote!
 	form = cgi.FieldStorage()
 	surveyID = form["surveyID"].value
-
-	question_query = Questions.all()
-	question_query.filter("surveyID", surveyID)
-	question_query.order("questionID")
-	questionShows = question_query.fetch(100)
-
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"! "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+	# get questions to show
+	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 	template_values = {
+		'greeting': greeting,
+		'url': url,
+		'url_linktext': url_linktext,
 		'surveyID': surveyID,
 		'questionShows': questionShows,
 	}
@@ -276,7 +303,7 @@ class VoteSurvey(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 		else:
 			# update Surveys database
-			surveyToUpdate = Surveys.all().filter("surveyID", surveyID).fetch(1)
+			surveyToUpdate = Surveys.all().filter("surveyID", surveyID)
 			for surveyEntry in surveyToUpdate:
 				surveyEntry.voteN += 1
 				surveyEntry.LastVoteDate = datetime.datetime.now()
@@ -295,17 +322,32 @@ class VoteSurvey(webapp.RequestHandler):
 
 class MainPage(webapp.RequestHandler):
     def get(self):
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"! "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+
 	# get all surveyIDs we already have
-	survey_queryAll = Surveys.all()
-	# survey_queryAll.order("")	Can be changed according to the display order...........
-	surveyEntrysAll = survey_queryAll.fetch(1000)
+	surveyEntrysAll = Surveys.all()
+	# surveyEntrysAll.order("")	Can be changed according to the display order...........
 
 	# get all surveyIDs the login user have access to...
-	survey_queryUser = Surveys.all()	#will be changed according to the user ID
-	# survey_queryUser .order("")	Can be changed according to the display order...........
-	surveyEntrysUser = survey_queryUser.fetch(1000)
+	surveyEntrysUser = Surveys.all().filter("userID", user)	#will be changed according to the user ID
+	# surveyEntrysUser .order("")	Can be changed according to the display order...........
+	# if done this survey before
+	doneBefore = False
+#	votesUser = Votes.all().filter("userID", user).filter("surveyID", surveyID)
 
         template_values = {
+	    'greeting': greeting,
+	    'url': url,
+            'url_linktext': url_linktext,
             'surveyEntrysAll': surveyEntrysAll,
             'surveyEntrysUser': surveyEntrysUser,
         }
@@ -340,15 +382,26 @@ class CreateSurvey(webapp.RequestHandler):
 	global hadQ
 	global thisQid
 
-	survey_query = Surveys.all()
-	surveyEntrys = survey_query.fetch(1000)
-
+	surveyEntrys = Surveys.all()
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"! "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
 	path = os.path.join(os.path.dirname(__file__), 'createSurvey.html')
 	template_values = {
-	    'surveyID': surveyID,
-	    'surveyIDempty': surveyIDempty,
-	    'surveyIDvalid': surveyIDvalid,
-	    'addNewQ': addNewQ,
+		'greeting': greeting,
+		'url': url,
+		'url_linktext': url_linktext,
+		'surveyID': surveyID,
+		'surveyIDempty': surveyIDempty,
+		'surveyIDvalid': surveyIDvalid,
+		'addNewQ': addNewQ,
 	}
 	self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
@@ -367,7 +420,10 @@ class CreateSurvey(webapp.RequestHandler):
 	if (not surveyIDvalid and form.has_key("test")):
 		self.response.clear()
 		template_values = {
-			'surveyID': surveyID,
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+		 	'surveyID': surveyID,
 			'surveyIDempty': surveyIDempty,
 			'surveyIDvalid': surveyIDvalid,
 			'addNewQ': addNewQ,
@@ -389,6 +445,9 @@ class CreateSurvey(webapp.RequestHandler):
 		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0, createDate = datetime.datetime.now()).put()
 		self.response.clear()
 		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
 			'surveyID': surveyID,
 			'surveyIDempty': surveyIDempty,
 			'surveyIDvalid': surveyIDvalid,
@@ -399,15 +458,15 @@ class CreateSurvey(webapp.RequestHandler):
 	if (form.has_key("add")):
 		addNewQ = True
 		self.response.clear()
-		question_query = Questions.all()
-		question_query.filter("surveyID", surveyID)
-		question_query.order("questionID")
-		questionShows = question_query.fetch(100)
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		for question in questionShows:
 			if (question.questionID):
 				hadQ = True
 				thisQid = question.questionID + 1
 		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
 			'surveyID': surveyID,
 			'surveyIDempty': surveyIDempty,
 			'surveyIDvalid': surveyIDvalid,
@@ -432,15 +491,15 @@ class CreateSurvey(webapp.RequestHandler):
 				  key_name=surveyID+str(thisQid)).put()
 			# set site consistant with database
 			self.response.clear()
-			question_query = Questions.all()
-			question_query.filter("surveyID", surveyID)
-			question_query.order("questionID")
-			questionShows = question_query.fetch(100)
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 			for question in questionShows:
 				if (question.questionID):
 					hadQ = True
 					thisQid = question.questionID + 1
 			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
 				'surveyID': surveyID,
 				'surveyIDempty': surveyIDempty,
 				'surveyIDvalid': surveyIDvalid,
@@ -468,16 +527,15 @@ class CreateSurvey(webapp.RequestHandler):
 						  key_name=surveyID+str(questionEntry.questionID)).put()
 			# set site consistant with database
 			self.response.clear()
-			question_query = Questions.all()
-			question_query.filter("surveyID", surveyID)
-			question_query.order("questionID")
-			questionShows = question_query.fetch(100)
-
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 			for question in questionShows:
 				if (question.questionID):
 					hadQ = True
 					thisQid = question.questionID + 1
 			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
 				'surveyID': surveyID,
 				'surveyIDempty': surveyIDempty,
 				'surveyIDvalid': surveyIDvalid,
@@ -527,13 +585,12 @@ class CreateSurvey(webapp.RequestHandler):
 					  questionID = thisQid,
 					  key_name=surveyID+str(thisQid)).put()
 		
-		question_query = Questions.all()
-		question_query.filter("surveyID", surveyID)
-		question_query.order("questionID")
-		questionShows = question_query.fetch(100)
-
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		self.response.clear()
 		template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
 				'surveyID': surveyID,
 				'questionShows': questionShows,
 		}
@@ -545,8 +602,7 @@ class CreateSurvey(webapp.RequestHandler):
 
 	# just for testing...
 	self.response.out.write("<br />*******just for testing******<br />")
-	surveyQuery = Surveys.all()	# will be deleted
-	surveyShows = surveyQuery.fetch(1000)	# will be deleted
+	surveyShows = Surveys.all()	# will be deleted
 	self.response.out.write('Already had questions: '+ str(hadQ) + "<br />")
 	self.response.out.write('Last question ID: '+ str(thisQid) + "<br />")
 	for surveyII in surveyShows:	# will be deleted
