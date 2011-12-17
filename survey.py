@@ -37,10 +37,10 @@ class Surveys(db.Model):
 	LastVoteDate = db.DateTimeProperty()
 
 class Votes(db.Model):
-	"""Models a survey entry with surveyID, voteN, createDate, LastVoteDate."""
+	"""Models a vote entry with userID, surveyID, result."""
 	userID = db.UserProperty()
 	surveyID = db.StringProperty()
-	result = db.StringProperty()
+	result = db.StringProperty(multiline=True)
 
 class VoteSurvey(webapp.RequestHandler):
     def get(self):
@@ -61,6 +61,8 @@ class VoteSurvey(webapp.RequestHandler):
 	self.response.out.write(template.render(path, template_values))
 	# Record vote results
 	if (form.has_key("vote")):
+		voted = False
+		votes = ""
 		for questionEntry in questionShows:
 			questionID = questionEntry.questionID
 			self.response.out.write(questionEntry.question+"<br />")
@@ -68,17 +70,54 @@ class VoteSurvey(webapp.RequestHandler):
 			answer = []
 			choices = questionEntry.choices.splitlines()
 			answers = questionEntry.answers.splitlines()
-			self.response.out.write(questionEntry.answers+" <br />")
 			for choice in choices:
-				if (form.has_key("selection,"+str(questionID)+","+str(i))):
+				selectV = "selection,"+str(questionID)
+				if ( form.has_key(selectV) and i == int(form[selectV].value) ):
 					answers[i] = str(int(answers[i])+1)
 					self.response.out.write(choice+"---Yes---:"+answers[i]+" <br />")
+					voted = True
+					votes = votes+"1 "
+				elif (form.has_key("selection,"+str(questionID)+","+str(i))):
+					answers[i] = str(int(answers[i])+1)
+					self.response.out.write(choice+"---Yes---:"+answers[i]+" <br />")
+					voted = True
+					votes = votes+"1 "
 				else:
 					self.response.out.write(choice+"---No---:"+answers[i]+" <br />")
-				i = i+1
+					votes = votes+"0 "
+				i = i+1		
 			answersUpdate = "\n".join(answers)
 			questionEntry.answers = answersUpdate
 			questionEntry.put()
+			self.response.out.write(questionEntry.answers+" <br />")
+			votes = votes+"\n"
+		if (not voted):
+			template_values = { 'message': "Sorry!  You need to vote at least one question.  If you don't want to vote, please press 'Cancel' to go back to the main page." }
+			path = os.path.join(os.path.dirname(__file__), 'alertDialogBox.html')
+			self.response.out.write(template.render(path, template_values))
+		else:
+			# update Surveys database
+			surveyToUpdate = Surveys.all().filter("surveyID", surveyID).fetch(1)
+			for surveyEntry in surveyToUpdate:
+				surveyEntry.voteN += 1
+				surveyEntry.LastVoteDate = datetime.datetime.now()
+				surveyEntry.put()
+				# self.response.out.write(str(surveyEntry.voteN)+":"+str(surveyEntry.LastVoteDate)+" <br />")
+			# update Votes database
+			Votes(  #userID = "athena",
+				surveyID = surveyID, key_name=surveyID, #should be changed to surveyID + userID
+				result = votes ).put()
+			userVotes = Votes.all().filter("surveyID", surveyID).fetch(1)
+			self.response.out.write(votes+" <br />")			
+			for userVote in userVotes:
+#				userVote.delete()
+				self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")
+
+			# self.redirect("/results?surveyID="+surveyID)
+
+	if (form.has_key("back")):
+		self.redirect('/')
+
 
 class MainPage(webapp.RequestHandler):
     def get(self):
@@ -174,7 +213,7 @@ class CreateSurvey(webapp.RequestHandler):
 	# if surveyID is valid
 	if (surveyIDvalid and form.has_key("test")):
 		addNewQ = False
-		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0).put()
+		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0, createDate = datetime.datetime.now()).put()
 		self.response.clear()
 		template_values = {
 			'surveyID': surveyID,
@@ -351,6 +390,7 @@ application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/create', CreateSurvey),
   ('/vote', VoteSurvey),
+#  ('/results', ShowResults),
 ], debug=True)
 
 

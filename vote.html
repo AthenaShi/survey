@@ -16,8 +16,6 @@
     <form>
 
     <input type="hidden" name="surveyID" value="{{surveyID}}">
-    <input type="hidden" name="lala" value="firstValue">
-    <input type="hidden" name="lala" value="secondValue">
 
     {% for questionEntry in questionShows %}
       <p>Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</p>
@@ -30,7 +28,7 @@
       var questionID = "{{questionEntry.questionID}}";
       for (var i=0; i<choices.length; i++) {
         if (multiple == "False") {
-          document.write("<dd><p><input type=\"radio\" name=\"selection,"+ questionID +","+ i +"\">"+ choices[i] +"</p></dd>");
+          document.write("<dd><p><input type=\"radio\" name=\"selection,"+ questionID +"\" value="+i+">"+ choices[i] +"</p></dd>");
         } else {
           document.write("<dd><p><input type=\"checkbox\" name=\"selection,"+ questionID +","+ i +"\">"+ choices[i] +"</p></dd>");
         }
@@ -39,7 +37,7 @@
 
     {% endfor %}
 
-       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Cancel"><INPUT TYPE = submit NAME = "vote" VALUE = "View Results"></dd></p>
+       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Cancel"><INPUT TYPE = submit NAME = "vote" VALUE = "Submit"></dd></p>
     </form> 
 
   </body>
