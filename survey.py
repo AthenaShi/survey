@@ -42,6 +42,163 @@ class Votes(db.Model):
 	surveyID = db.StringProperty()
 	result = db.StringProperty(multiline=True)
 
+class EditSurvey(webapp.RequestHandler):
+    def get(self):
+	# Show survey questions and choices and let vote!
+	form = cgi.FieldStorage()
+	surveyID = form["surveyID"].value
+
+	question_query = Questions.all()
+	question_query.filter("surveyID", surveyID)
+	question_query.order("questionID")
+	questionShows = question_query.fetch(100)
+
+	path = os.path.join(os.path.dirname(__file__), 'editSurvey.html')
+	addNewQ = False
+	template_values = {
+			'surveyID': surveyID,
+			'addNewQ': addNewQ,
+			'questionShows': questionShows,
+	}
+	self.response.out.write(template.render(path, template_values))
+	thisQid = 1
+	for question in questionShows:
+		if (question.questionID):
+			thisQid = question.questionID + 1
+	if (form.has_key("back")):
+		self.redirect('/')
+	# add new questions...	
+	if (form.has_key("add")):
+		addNewQ = True
+		self.response.clear()
+		question_query = Questions.all()
+		question_query.filter("surveyID", surveyID)
+		question_query.order("questionID")
+		questionShows = question_query.fetch(100)
+		for question in questionShows:
+			if (question.questionID):
+				thisQid = question.questionID + 1
+		template_values = {
+			'surveyID': surveyID,
+			'addNewQ': addNewQ,
+			'questionShows': questionShows,
+			'thisQid': thisQid,
+		}
+		self.response.out.write(template.render(path, template_values))
+		# update database
+		if (form.has_key("question") and form.has_key("choices")):
+			if (form.has_key("multiple")):
+				multiple = True
+			else:
+			 	multiple = False
+			# should add a message here!!!
+			Questions(question = form["question"].value,
+				  choices = form["choices"].value,
+				  multiple = multiple,
+				  surveyID = surveyID,
+				  questionID = thisQid,
+				  key_name=surveyID+str(thisQid)).put()
+			# set site consistant with database
+			self.response.clear()
+			question_query = Questions.all()
+			question_query.filter("surveyID", surveyID)
+			question_query.order("questionID")
+			questionShows = question_query.fetch(100)
+			for question in questionShows:
+				if (question.questionID):
+					thisQid = question.questionID + 1
+			template_values = {
+				'surveyID': surveyID,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+			# update database
+			for questionEntry in questionShows:
+				if (form.has_key(str(questionEntry.questionID)+"question") and form.has_key(str(questionEntry.questionID)+"choices")):
+					if (form.has_key(str(questionEntry.questionID)+"multiple")):
+						multiple = True
+					else:
+				 		multiple = False
+					Questions(question = form[str(questionEntry.questionID)+"question"].value,
+						  choices = form[str(questionEntry.questionID)+"choices"].value,
+						  multiple = multiple,
+						  surveyID = surveyID,
+						  questionID = questionEntry.questionID,
+						  key_name=surveyID+str(questionEntry.questionID)).put()
+			# set site consistant with database
+			self.response.clear()
+			question_query = Questions.all()
+			question_query.filter("surveyID", surveyID)
+			question_query.order("questionID")
+			questionShows = question_query.fetch(100)
+
+			for question in questionShows:
+				if (question.questionID):
+					thisQid = question.questionID + 1
+			template_values = {
+				'surveyID': surveyID,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+			addNewQ = False
+	if (form.has_key("done")):
+		for questionID in range(1,thisQid):
+			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
+				question = form[str(questionID)+"question"].value	# question
+				choices = form[str(questionID)+"choices"].value		# choices
+				if (form.has_key(str(questionID)+"multiple")):		# multiple
+					multiple = True
+				else:
+			 		multiple = False
+
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				# final update of the creation	
+				Questions(question = question,
+					  choices = choices,
+					  multiple = multiple,
+					  answers = answers,
+					  surveyID = surveyID,
+					  questionID = questionID,
+					  key_name=surveyID+str(questionID)).put()
+		if (form.has_key("question") and form.has_key("choices")):
+				choices = form["choices"].value
+				if (form.has_key("multiple")):
+					multiple = True
+				else:
+			 		multiple = False
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				# final update of the creation
+				Questions(question = form["question"].value,
+					  choices = form["choices"].value,
+					  multiple = multiple,
+					  answers = answers,
+					  surveyID = surveyID,
+					  questionID = thisQid,
+					  key_name=surveyID+str(thisQid)).put()
+		
+		question_query = Questions.all()
+		question_query.filter("surveyID", surveyID)
+		question_query.order("questionID")
+		questionShows = question_query.fetch(100)
+
+		self.response.clear()
+		template_values = {
+				'surveyID': surveyID,
+				'questionShows': questionShows,
+		}
+		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
+		self.response.out.write(template.render(path, template_values))	
+	if (form.has_key("back")):
+		self.redirect('/')
+
 class ShowResults(webapp.RequestHandler):
     def get(self):
 	# Show survey questions and choices and let vote!
@@ -61,8 +218,6 @@ class ShowResults(webapp.RequestHandler):
 	self.response.out.write(template.render(path, template_values))
 	if (form.has_key("back")):
 		self.redirect('/')
-
-
 
 class VoteSurvey(webapp.RequestHandler):
     def get(self):
@@ -133,10 +288,8 @@ class VoteSurvey(webapp.RequestHandler):
 		userVotes = Votes.all().filter("surveyID", surveyID).fetch(1)	# just for testing, will be deleted
 		for userVote in userVotes:	# just for testing, will be deleted
 			self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")	# just for testing, will be deleted
-
 	if (form.has_key("back")):
 		self.redirect('/')
-
 
 class MainPage(webapp.RequestHandler):
     def get(self):
@@ -409,6 +562,7 @@ application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/create', CreateSurvey),
   ('/vote', VoteSurvey),
+  ('/edit', EditSurvey),
   ('/results', ShowResults),
 ], debug=True)
 

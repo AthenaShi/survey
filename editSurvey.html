@@ -1,0 +1,41 @@
+<!-- Parameters in:
+	surveyID (surveyID, used to check validation and display)
+	addNewQ (use to show the "add" button, and other display)
+	questionShows (show the already created questions)
+	thisQid (The questionID need to be added this time)
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+
+  <h2>Edit Survey</h2>
+  <h3>{{surveyID}}</h3>
+  <body>
+    <form>
+      <input type="hidden" name="surveyID" value="{{surveyID}}">
+      {% for questionEntry in questionShows %}
+        <p>Q{{ questionEntry.questionID }}: <input TYPE = text NAME = "{{ questionEntry.questionID }}question" size="100" maxlength="100" VALUE= "{{ questionEntry.question }}" ></p>
+        {% if questionEntry.multiple %}
+          <dd><p>Choices: (Put one choice each line) | If multiple choices <input type="checkbox" NAME="{{ questionEntry.questionID }}multiple" checked></p></dd>
+        {% else %}
+          <dd><p>Choices: (Put one choice each line) | If multiple choices <input type="checkbox" NAME="{{ questionEntry.questionID }}multiple"></p></dd>
+        {% endif %}
+        <dd><p><textarea NAME="{{ questionEntry.questionID }}choices" ROWS="5" COLS="74" >{{ questionEntry.choices }}</textarea></p></dd>
+      {% endfor %}
+
+      {% if addNewQ %}
+        <p>Q{{ thisQid }}: <input TYPE = text NAME = "question" size="100" maxlength="100"></p>
+        <dd><p>Choices: (Put one choice each line) | If multiple choices <input type="checkbox" NAME="multiple"></p></dd>
+        <dd><p><textarea NAME="choices" ROWS="5" COLS="74"></textarea></p></dd>
+      {% endif %}
+
+       <p><dd><INPUT TYPE = submit NAME = "add" VALUE = "Add Question!"><INPUT TYPE = submit NAME = "done" VALUE = "Done!"></dd></p>
+
+     </form> 
+     
+
+  </body>
+</html>
