@@ -1,0 +1,80 @@
+<!-- Parameters in:
+	surveyID
+	questionShows
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+
+  <h2>Survey Result</h2>
+  <h3>{{surveyID}}</h3>
+
+  <body>
+    <form>
+	<table>
+    <input type="hidden" name="surveyID" value="{{surveyID}}">
+
+    {% for questionEntry in questionShows %}
+      <input type="hidden" id="{{questionEntry.questionID}}questions" name="variable" value="{{ questionEntry.choices }}">
+      <input type="hidden" id="{{questionEntry.questionID}}answers" name="variable" value="{{ questionEntry.answers }}">
+      <script type="text/javascript">
+      var choiceLine = document.getElementById("{{questionEntry.questionID}}questions").value;
+      var choices = choiceLine.split("\n");
+      var multiple = "{{questionEntry.multiple}}";
+      var answerLine = document.getElementById("{{questionEntry.questionID}}answers").value;
+      var answers = answerLine.split("\n");
+      var questionID = "{{questionEntry.questionID}}";
+
+      document.write("<tr><th colspan=\"2\" height=\"50\" style=\"text-align:left;;color:black\">Q{{ questionEntry.questionID }}. {{ questionEntry.question }}</th>");
+      // get max value of each multiple choice question OR the sum of each single choice question
+      var allORmax = 0;
+      document.write("<tr><td colspan=\"2\" style=\"text-align:center\">");
+      if (multiple == "False") {
+          document.write("Percent of Responses");
+      } else {
+          document.write("Number of Votes");
+      }
+      document.write("</td></tr>");
+
+      for (var i=0; i<choices.length; i++) {
+        if (multiple == "False") {
+          allORmax += parseInt(answers[i]);
+        } else {
+          if (parseInt(answers[i]) > allORmax) {
+            allORmax = parseInt(answers[i]);
+          }
+        }
+      }
+      
+      // show by stars ******** I know it's ugly... -_-!!!
+      for (var i=0; i<choices.length; i++) {
+        var length = parseInt(answers[i]) * 60 / allORmax ;
+        var perc = parseInt(answers[i]) * 100 / allORmax ;
+	var bar = "";
+        document.write("<tr>");
+	for (var j=0; j<parseInt(length); j++) {
+		var bar = bar+"~";
+	}
+        document.write("<td style=\"text-align:right\">"+choices[i]+"</td> <td>| <span style=\"background-color:blue\" >"+bar+"</span> " )
+	if (multiple == "False") {
+          document.write(perc.toFixed(2)+"%");
+	} else {
+          document.write(parseInt(answers[i]));
+	}
+	document.write("</td>");
+        document.write("</tr>");
+      }
+//      document.write("</table>");
+      </script>
+
+    {% endfor %}
+      </table>
+       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to Main Page"></dd></p>
+    </form> 
+
+  </body>
+</html>
+

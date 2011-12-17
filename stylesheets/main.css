@@ -4,13 +4,21 @@ body {
   background-color: #C6DEFF;
 }
 
+tr
+{
+  font-family: Verdana, Helvetica, sans-serif;
+  font-size: 15px;
+  color:blue;
+}
+
 h2
 {
-color:purple;
-text-align:center;
+  color:purple;
+  text-align:center;
 }
+
 h3
 {
-color:blue;
-text-align:center;
+  color:blue;
+  text-align:center;
 }

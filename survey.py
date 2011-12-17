@@ -42,6 +42,28 @@ class Votes(db.Model):
 	surveyID = db.StringProperty()
 	result = db.StringProperty(multiline=True)
 
+class ShowResults(webapp.RequestHandler):
+    def get(self):
+	# Show survey questions and choices and let vote!
+	form = cgi.FieldStorage()
+	surveyID = form["surveyID"].value
+
+	question_query = Questions.all()
+	question_query.filter("surveyID", surveyID)
+	question_query.order("questionID")
+	questionShows = question_query.fetch(100)
+
+	template_values = {
+		'surveyID': surveyID,
+		'questionShows': questionShows,
+	}
+	path = os.path.join(os.path.dirname(__file__), 'results.html')
+	self.response.out.write(template.render(path, template_values))
+	if (form.has_key("back")):
+		self.redirect('/')
+
+
+
 class VoteSurvey(webapp.RequestHandler):
     def get(self):
 	# Show survey questions and choices and let vote!
@@ -89,7 +111,7 @@ class VoteSurvey(webapp.RequestHandler):
 			answersUpdate = "\n".join(answers)
 			questionEntry.answers = answersUpdate
 			questionEntry.put()
-			self.response.out.write(questionEntry.answers+" <br />")
+			self.response.out.write(questionEntry.answers+" <br />")	# just for testing, will be deleted
 			votes = votes+"\n"
 		if (not voted):
 			template_values = { 'message': "Sorry!  You need to vote at least one question.  If you don't want to vote, please press 'Cancel' to go back to the main page." }
@@ -102,18 +124,15 @@ class VoteSurvey(webapp.RequestHandler):
 				surveyEntry.voteN += 1
 				surveyEntry.LastVoteDate = datetime.datetime.now()
 				surveyEntry.put()
-				# self.response.out.write(str(surveyEntry.voteN)+":"+str(surveyEntry.LastVoteDate)+" <br />")
 			# update Votes database
 			Votes(  #userID = "athena",
 				surveyID = surveyID, key_name=surveyID, #should be changed to surveyID + userID
 				result = votes ).put()
-			userVotes = Votes.all().filter("surveyID", surveyID).fetch(1)
-			self.response.out.write(votes+" <br />")			
-			for userVote in userVotes:
-#				userVote.delete()
-				self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")
-
-			# self.redirect("/results?surveyID="+surveyID)
+			self.response.out.write(votes+" <br />")		# just for testing, will be deleted
+			self.redirect("/results?surveyID="+surveyID)
+		userVotes = Votes.all().filter("surveyID", surveyID).fetch(1)	# just for testing, will be deleted
+		for userVote in userVotes:	# just for testing, will be deleted
+			self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")	# just for testing, will be deleted
 
 	if (form.has_key("back")):
 		self.redirect('/')
@@ -390,7 +409,7 @@ application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/create', CreateSurvey),
   ('/vote', VoteSurvey),
-#  ('/results', ShowResults),
+  ('/results', ShowResults),
 ], debug=True)
 
 
