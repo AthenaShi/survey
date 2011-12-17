@@ -146,6 +146,7 @@ class EditSurvey(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 			addNewQ = False
 	if (form.has_key("done")):
+		# update Questions database
 		for questionID in range(1,thisQid):
 			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
 				question = form[str(questionID)+"question"].value	# question
@@ -154,11 +155,9 @@ class EditSurvey(webapp.RequestHandler):
 					multiple = True
 				else:
 			 		multiple = False
-
 				answers = ""						# answers
 				for choice in choices.splitlines():
 					answers = answers+"0\n"
-				# final update of the creation	
 				Questions(question = question,
 					  choices = choices,
 					  multiple = multiple,
@@ -175,7 +174,6 @@ class EditSurvey(webapp.RequestHandler):
 				answers = ""						# answers
 				for choice in choices.splitlines():
 					answers = answers+"0\n"
-				# final update of the creation
 				Questions(question = form["question"].value,
 					  choices = form["choices"].value,
 					  multiple = multiple,
@@ -183,16 +181,25 @@ class EditSurvey(webapp.RequestHandler):
 					  surveyID = surveyID,
 					  questionID = thisQid,
 					  key_name=surveyID+str(thisQid)).put()
-		
+		# reset Surveys database
+		surveyToUpdate = Surveys.all().filter("surveyID", surveyID).fetch(1)
+		for surveyEntry in surveyToUpdate:
+			surveyEntry.voteN = 0
+			surveyEntry.CreateDate = datetime.datetime.now()
+			surveyEntry.put()
+		# update Votes database
+		votes4surveyID = Votes.all().filter("surveyID", surveyID).fetch(1000000000)
+		for vote4surveyID in votes4surveyID:
+			vote4surveyID.delete()
+		# show edit result page
 		question_query = Questions.all()
 		question_query.filter("surveyID", surveyID)
 		question_query.order("questionID")
 		questionShows = question_query.fetch(100)
-
 		self.response.clear()
 		template_values = {
-				'surveyID': surveyID,
-				'questionShows': questionShows,
+			'surveyID': surveyID,
+			'questionShows': questionShows,
 		}
 		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
 		self.response.out.write(template.render(path, template_values))	
@@ -242,7 +249,6 @@ class VoteSurvey(webapp.RequestHandler):
 		votes = ""
 		for questionEntry in questionShows:
 			questionID = questionEntry.questionID
-			self.response.out.write(questionEntry.question+"<br />")
 			i = 0
 			answer = []
 			choices = questionEntry.choices.splitlines()
@@ -251,22 +257,18 @@ class VoteSurvey(webapp.RequestHandler):
 				selectV = "selection,"+str(questionID)
 				if ( form.has_key(selectV) and i == int(form[selectV].value) ):
 					answers[i] = str(int(answers[i])+1)
-					self.response.out.write(choice+"---Yes---:"+answers[i]+" <br />")
 					voted = True
 					votes = votes+"1 "
 				elif (form.has_key("selection,"+str(questionID)+","+str(i))):
 					answers[i] = str(int(answers[i])+1)
-					self.response.out.write(choice+"---Yes---:"+answers[i]+" <br />")
 					voted = True
 					votes = votes+"1 "
 				else:
-					self.response.out.write(choice+"---No---:"+answers[i]+" <br />")
 					votes = votes+"0 "
 				i = i+1		
 			answersUpdate = "\n".join(answers)
 			questionEntry.answers = answersUpdate
 			questionEntry.put()
-			self.response.out.write(questionEntry.answers+" <br />")	# just for testing, will be deleted
 			votes = votes+"\n"
 		if (not voted):
 			template_values = { 'message': "Sorry!  You need to vote at least one question.  If you don't want to vote, please press 'Cancel' to go back to the main page." }
@@ -283,11 +285,11 @@ class VoteSurvey(webapp.RequestHandler):
 			Votes(  #userID = "athena",
 				surveyID = surveyID, key_name=surveyID, #should be changed to surveyID + userID
 				result = votes ).put()
-			self.response.out.write(votes+" <br />")		# just for testing, will be deleted
+#			self.response.out.write(votes+" <br />")		# just for testing, will be deleted
 			self.redirect("/results?surveyID="+surveyID)
-		userVotes = Votes.all().filter("surveyID", surveyID).fetch(1)	# just for testing, will be deleted
-		for userVote in userVotes:	# just for testing, will be deleted
-			self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")	# just for testing, will be deleted
+#		userVotes = Votes.all().filter("surveyID", surveyID).fetch(10)	# just for testing, will be deleted
+#		for userVote in userVotes:	# just for testing, will be deleted
+#			self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")	# just for testing, will be deleted
 	if (form.has_key("back")):
 		self.redirect('/')
 
@@ -303,7 +305,6 @@ class MainPage(webapp.RequestHandler):
 	# survey_queryUser .order("")	Can be changed according to the display order...........
 	surveyEntrysUser = survey_queryUser.fetch(1000)
 
-	# url = "/vote?surveyID=helloAthena"
         template_values = {
             'surveyEntrysAll': surveyEntrysAll,
             'surveyEntrysUser': surveyEntrysUser,
