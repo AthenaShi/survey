@@ -18,7 +18,7 @@
 
   <body>
     <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
-    <form>
+      <form method=post>
       {% if surveyIDempty and not addNewQ%}
         <dd><p>Please input your survey NAME (can't be the same with what we have):</p></dd>
         <dd><p> <input TYPE = text NAME = "surveyID" size="100" maxlength="100" value = "{{ surveyID }}"> ( 100 charactors max, and can't be changed after submit!) </p></dd>
@@ -30,7 +30,7 @@
         <p><dd><INPUT TYPE = submit NAME = "cancel" VALUE = "Cancel"><INPUT TYPE = submit NAME = "test" VALUE = "Submit Survey NAME!"></dd></p>
       {% else %}
         <p>Survey NAME:</p>
-        <dd><p>{{ surveyID }}</p></dd>
+        <input TYPE = hidden NAME = "surveyID" value = "{{ surveyID }}">        <dd><p>{{ surveyID }}</p></dd>
         <p><dd><INPUT TYPE = submit NAME = "cancel" VALUE = "Abort"><INPUT TYPE = submit NAME = "add" VALUE = "Add Question!"></dd></p>
       {% endif %} {% endif %}
 
@@ -53,6 +53,7 @@
 
 
      <!-- <form action="/" method="post"> -->
+       <INPUT TYPE = hidden NAME = "thisQid" VALUE = "{{thisQid}}">
        <p><dd><INPUT TYPE = submit NAME = "add" VALUE = "Add Question!"><INPUT TYPE = submit NAME = "done" VALUE = "Done!"></dd></p>
       {% endif %}
 

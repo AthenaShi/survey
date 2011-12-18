@@ -265,6 +265,178 @@ class EditSurvey(webapp.RequestHandler):
 		self.response.out.write(template.render(path, template_values))	
 	if (form.has_key("back")):
 		self.redirect('/')
+    def post(self):
+	# Show survey questions and choices and let vote!
+	form = cgi.FieldStorage()
+	surveyID = form["surveyID"].value
+	# get the user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"~ "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+	# get question need to show
+	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+	path = os.path.join(os.path.dirname(__file__), 'editSurvey.html')
+	addNewQ = False
+	template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+			'surveyID': surveyID,
+			'addNewQ': addNewQ,
+			'questionShows': questionShows,
+	}
+	self.response.out.write(template.render(path, template_values))
+	thisQid = 1
+	for question in questionShows:
+		if (question.questionID):
+			thisQid = question.questionID + 1
+	if (form.has_key("back")):
+		self.redirect('/')
+	# add new questions...	
+	if (form.has_key("add")):
+		addNewQ = True
+		self.response.clear()
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+		for question in questionShows:
+			if (question.questionID):
+				thisQid = question.questionID + 1
+		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+			'surveyID': surveyID,
+			'addNewQ': addNewQ,
+			'questionShows': questionShows,
+			'thisQid': thisQid,
+		}
+		self.response.out.write(template.render(path, template_values))
+		# update database
+		if (form.has_key("question") and form.has_key("choices")):
+			if (form.has_key("multiple")):
+				multiple = True
+			else:
+			 	multiple = False
+			# should add a message here!!!
+			Questions(question = form["question"].value,
+				  choices = form["choices"].value,
+				  multiple = multiple,
+				  surveyID = surveyID,
+				  questionID = thisQid,
+				  key_name=surveyID+str(thisQid)).put()
+			# set site consistant with database
+			self.response.clear()
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+			for question in questionShows:
+				if (question.questionID):
+					thisQid = question.questionID + 1
+			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
+				'surveyID': surveyID,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+			# update database
+			for questionEntry in questionShows:
+				if (form.has_key(str(questionEntry.questionID)+"question") and form.has_key(str(questionEntry.questionID)+"choices")):
+					if (form.has_key(str(questionEntry.questionID)+"multiple")):
+						multiple = True
+					else:
+				 		multiple = False
+					Questions(question = form[str(questionEntry.questionID)+"question"].value,
+						  choices = form[str(questionEntry.questionID)+"choices"].value,
+						  multiple = multiple,
+						  surveyID = surveyID,
+						  questionID = questionEntry.questionID,
+						  key_name=surveyID+str(questionEntry.questionID)).put()
+			# set site consistant with database
+			self.response.clear()
+			questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+
+			for question in questionShows:
+				if (question.questionID):
+					thisQid = question.questionID + 1
+			template_values = {
+				'greeting': greeting,
+				'url': url,
+				'url_linktext': url_linktext,
+				'surveyID': surveyID,
+				'addNewQ': addNewQ,
+				'questionShows': questionShows,
+				'thisQid': thisQid,
+			}
+			self.response.out.write(template.render(path, template_values))
+			addNewQ = False
+	if (form.has_key("done")):
+		# update Questions database
+		for questionID in range(1,thisQid):
+			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
+				question = form[str(questionID)+"question"].value	# question
+				choices = form[str(questionID)+"choices"].value		# choices
+				if (form.has_key(str(questionID)+"multiple")):		# multiple
+					multiple = True
+				else:
+			 		multiple = False
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				Questions(question = question,
+					  choices = choices,
+					  multiple = multiple,
+					  answers = answers,
+					  surveyID = surveyID,
+					  questionID = questionID,
+					  key_name=surveyID+str(questionID)).put()
+		if (form.has_key("question") and form.has_key("choices")):
+				choices = form["choices"].value
+				if (form.has_key("multiple")):
+					multiple = True
+				else:
+			 		multiple = False
+				answers = ""						# answers
+				for choice in choices.splitlines():
+					answers = answers+"0\n"
+				Questions(question = form["question"].value,
+					  choices = form["choices"].value,
+					  multiple = multiple,
+					  answers = answers,
+					  surveyID = surveyID,
+					  questionID = thisQid,
+					  key_name=surveyID+str(thisQid)).put()
+		# reset Surveys database
+		surveyToUpdate = Surveys.all().filter("surveyID", surveyID)
+		for surveyEntry in surveyToUpdate:
+			surveyEntry.voteN = 0
+			surveyEntry.CreateDate = datetime.datetime.now()
+#			surveyEntry.userID = user
+			surveyEntry.put()
+		# update Votes database
+		votes4surveyID = Votes.all().filter("surveyID", surveyID)
+		for vote4surveyID in votes4surveyID:
+			vote4surveyID.delete()
+		# show edit result page
+		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+		self.response.clear()
+		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+			'surveyID': surveyID,
+			'questionShows': questionShows,
+		}
+		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
+		self.response.out.write(template.render(path, template_values))	
+	if (form.has_key("back")):
+		self.redirect('/')
 
 class ShowResults(webapp.RequestHandler):
     def get(self):
@@ -461,14 +633,20 @@ class MainPage(webapp.RequestHandler):
 		thisQid = 1
 
 class CreateSurvey(webapp.RequestHandler):
-    def get(self):
+    def post(self):
 	global surveyID
 	global surveyIDempty
 	global addNewQ
 	global surveyIDvalid
 	global addNewQ
 	global hadQ
-	global thisQid
+	surveyID = ""
+	surveyIDempty = True
+	addNewQ = False
+	surveyIDvalid = False
+	addNewQ = False
+	hadQ = False
+	thisQid = 1
 
 	surveyEntrys = Surveys.all()
 	# get the user 
@@ -545,6 +723,7 @@ class CreateSurvey(webapp.RequestHandler):
 	# add new questions...	
 	if (form.has_key("add")):
 		addNewQ = True
+		thisQid = 1
 		self.response.clear()
 		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		for question in questionShows:
@@ -636,6 +815,8 @@ class CreateSurvey(webapp.RequestHandler):
 			self.response.out.write(template.render(path, template_values))
 			addNewQ = False
 	if (form.has_key("done")):
+		thisQid = int(form["thisQid"].value)
+#		self.response.out.write(thisQid)
 		for questionID in range(1,thisQid):
 			if (form.has_key(str(questionID)+"question") and form.has_key(str(questionID)+"choices")):
 				question = form[str(questionID)+"question"].value	# question
@@ -657,6 +838,7 @@ class CreateSurvey(webapp.RequestHandler):
 					  questionID = questionID,
 					  key_name=surveyID+str(questionID)).put()
 		if (form.has_key("question") and form.has_key("choices")):
+				self.response.out.write(thisQid)
 				choices = form["choices"].value
 				if (form.has_key("multiple")):
 					multiple = True
@@ -673,7 +855,6 @@ class CreateSurvey(webapp.RequestHandler):
 					  surveyID = surveyID,
 					  questionID = thisQid,
 					  key_name=surveyID+str(thisQid)).put()
-		
 		questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
 		self.response.clear()
 		template_values = {
