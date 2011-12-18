@@ -450,7 +450,7 @@ class MainPage(webapp.RequestHandler):
 		delete.delete()'''
 
 	# get all surveyIDs we already have
-	surveyEntrysAll = Surveys.all().order("-voteN")
+	surveyEntrysAll = Surveys.all().order("-voteN").order("-LastVoteDate").order("-createDate")
 	# surveyEntrysAll.order("")	Can be changed according to the display order...........
 
 	# get all surveyIDs the login user have access to...
