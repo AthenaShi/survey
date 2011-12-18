@@ -40,7 +40,7 @@
 	  }
 //	  document.write("<td></td>");
           if (voted) {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=#FF1493>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
 	  } else {
             document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 	  }
@@ -71,7 +71,7 @@
 	  }
 //	  document.write("<td></td>");
           if (voted) {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=#FF1493>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
 	  } else {
             document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 	  }
@@ -83,5 +83,6 @@
     </table>
     <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to Main Page"></dd></p>
   </form>
+    <hr /> <p style = "text-align:center;font-size:14px">Developed by Lin Shi.</p>
   </body>
 </html>

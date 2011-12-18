@@ -15,7 +15,7 @@
 
   <body>
     <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
-    <p><font size=3 color=red>Surveys shown by popularity order:</font></p>
+    <p><font size=3 color=#FF1493>Surveys shown by popularity order:</font></p>
     <input type="hidden" id="surveyVoted" name="variable" value="{{surveyVoted}}">
 
   <!--  <table border=0 cellpadding=2 cellspacing=2 width=60%> -->
@@ -38,11 +38,11 @@
 	  }
 //	  document.write("<td></td>");
           if (voted) {
-            document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+            document.write("<td><p><dd><font color=#8A2BE2>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=#FF1493>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
 	  } else {
-            document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+            document.write("<td><p><dd><font color=#8A2BE2>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 	  }
-          document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+          document.write("<td><p><dd><font color=#8A2BE2>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 		
 	  document.write("</tr>");
         </script>
@@ -70,6 +70,8 @@
     {% for userName in allusersArray %}
       <p><dd><a href="/browse?userID={{ userName }}">{{ userName }}</a></dd></p>
     {% endfor %}
+
+    <hr /> <p style = "text-align:center;font-size:14px">Developed by Lin Shi.</p>
     
   </body>
 </html>

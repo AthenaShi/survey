@@ -9,3 +9,12 @@ indexes:
   properties:
   - name: userID
   - name: surveyID
+ 
+- kind: Surveys
+  properties:
+  - name: voteN
+    direction: desc
+  - name: LastVoteDate
+    direction: desc
+  - name: createDate
+    direction: desc
