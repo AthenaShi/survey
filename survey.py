@@ -265,7 +265,7 @@ class EditSurvey(webapp.RequestHandler):
 		self.response.out.write(template.render(path, template_values))	
 	if (form.has_key("back")):
 		self.redirect('/')
-    def post(self):
+    def post(self):	# need to change something here...
 	# Show survey questions and choices and let vote!
 	form = cgi.FieldStorage()
 	surveyID = form["surveyID"].value
