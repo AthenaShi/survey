@@ -38,11 +38,11 @@
 	  }
 //	  document.write("<td></td>");
           if (voted) {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
 	  } else {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}{{surveyE.voteN}}</a></dd></p></td>");
 	  }
-          document.write("<td><p><dd><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+          document.write("<td><p><dd><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}{{surveyE.voteN}}</a></dd></p></td>");
 		
 	  document.write("</tr>");
         </script>
@@ -56,7 +56,7 @@
     {% for surveysU in surveyEntrysUser %}
     <tr>
       <td><p><dd><a href="/edit?surveyID={{ surveysU.surveyID }}" onClick="javascript:return confirm('Edit the survey will delete all the results of this survey. Do you want to continue?')">{{ surveysU.surveyID }}</a></dd></p></td>
-      <td><p><dd><INPUT TYPE = submit NAME = "delete{{ surveysU.surveyID }}" VALUE = "Delete"></dd></p></td>
+      <td><p><dd><INPUT TYPE = submit NAME = "delete{{ surveysU.surveyID }}" VALUE = "Delete" onClick="javascript:return confirm('Delete the survey will delete all the results of this survey. Do you want to continue?')"></dd></p></td>
     </tr>
     {% endfor %}
     </table>

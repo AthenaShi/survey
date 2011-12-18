@@ -245,7 +245,7 @@ class EditSurvey(webapp.RequestHandler):
 		for surveyEntry in surveyToUpdate:
 			surveyEntry.voteN = 0
 			surveyEntry.CreateDate = datetime.datetime.now()
-			surveyEntry.userID = user
+#			surveyEntry.userID = user
 			surveyEntry.put()
 		# update Votes database
 		votes4surveyID = Votes.all().filter("surveyID", surveyID)
@@ -312,19 +312,34 @@ class VoteSurvey(webapp.RequestHandler):
 		greeting = "Hello, please: "
 	# get questions to show
 	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+	votedQuery = Votes.all().filter("userID", user).filter("surveyID", surveyID)
+	voteD = False
+	votedResult = ""
+	for votedQ in votedQuery:
+		votedResult = votedQ.result
+		voteD = True
+
 	template_values = {
 		'greeting': greeting,
 		'url': url,
 		'url_linktext': url_linktext,
 		'surveyID': surveyID,
 		'questionShows': questionShows,
+		'voteD': voteD,
+		'votedResult': votedResult,
 	}
 	path = os.path.join(os.path.dirname(__file__), 'vote.html')
 	self.response.out.write(template.render(path, template_values))
-	# Record vote results
+	# Record vote results in Questions db
 	if (form.has_key("vote")):
-		voted = False
-		votes = ""
+		voted = False	# if voted this time
+		votes = ""	# the vote result of this time
+		if (voteD):	# if voted before
+			votedResult2D = []	# a 2D array with 0/1 to indicate choices
+			for votedR in votedResult.splitlines():
+				votedEachQ = votedR.split()
+				votedResult2D.append(votedEachQ)
+			
 		for questionEntry in questionShows:
 			questionID = questionEntry.questionID
 			i = 0
@@ -332,6 +347,9 @@ class VoteSurvey(webapp.RequestHandler):
 			choices = questionEntry.choices.splitlines()
 			answers = questionEntry.answers.splitlines()
 			for choice in choices:
+				if (voteD):	# subtract answers by 1
+					if (votedResult2D[questionID-1][i] == "1"):
+						answers[i] = str(int(answers[i])-1)
 				selectV = "selection,"+str(questionID)
 				if ( form.has_key(selectV) and i == int(form[selectV].value) ):
 					answers[i] = str(int(answers[i])+1)
@@ -343,7 +361,7 @@ class VoteSurvey(webapp.RequestHandler):
 					votes = votes+"1 "
 				else:
 					votes = votes+"0 "
-				i = i+1		
+				i = i+1
 			answersUpdate = "\n".join(answers)
 			questionEntry.answers = answersUpdate
 			questionEntry.put()
@@ -356,18 +374,15 @@ class VoteSurvey(webapp.RequestHandler):
 			# update Surveys database
 			surveyToUpdate = Surveys.all().filter("surveyID", surveyID)
 			for surveyEntry in surveyToUpdate:
-				surveyEntry.voteN += 1
+				if (not voteD):
+					surveyEntry.voteN += 1
 				surveyEntry.LastVoteDate = datetime.datetime.now()
 				surveyEntry.put()
 			# update Votes database
 			Votes(  userID = user,
 				surveyID = surveyID, key_name=surveyID+str(user), #should be changed to surveyID + userID
 				result = votes ).put()
-#			self.response.out.write(votes+" <br />")		# just for testing, will be deleted
 			self.redirect("/results?surveyID="+surveyID)
-#		userVotes = Votes.all().filter("surveyID", surveyID).fetch(10)	# just for testing, will be deleted
-#		for userVote in userVotes:	# just for testing, will be deleted
-#			self.response.out.write(userVote.surveyID + ": " + userVote.result + "<br />")	# just for testing, will be deleted
 	if (form.has_key("back")):
 		self.redirect('/')
 
@@ -413,6 +428,20 @@ class MainPage(webapp.RequestHandler):
         path = os.path.join(os.path.dirname(__file__), 'mainPage.html')
         self.response.out.write(template.render(path, template_values))
 	form = cgi.FieldStorage()
+
+	surveyToBeDeleted = Surveys.all().filter("userID", user)
+	for surveyDelete in surveyToBeDeleted:
+		surveyName = surveyDelete.surveyID
+		if (form.has_key("delete"+surveyName)):	# "delete{{ surveysU.surveyID }}"
+			# delete surveyID from Surveys DB
+			surveyDelete.delete()
+			# delete surveyID from Votes DB
+			for surveyInVote in Votes.all().filter("surveyID", surveyName):
+				surveyInVote.delete()
+			# delete surveyID from Questions DB
+			for surveyInQuestion in Questions.all().filter("surveyID", surveyName):
+				surveyInQuestion.delete()
+			self.redirect('/')
 
 	if (form.has_key("create")):
 		self.redirect('/create')
