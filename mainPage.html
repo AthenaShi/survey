@@ -38,11 +38,11 @@
 	  }
 //	  document.write("<td></td>");
           if (voted) {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+            document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
 	  } else {
-            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}{{surveyE.voteN}}</a></dd></p></td>");
+            document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 	  }
-          document.write("<td><p><dd><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}{{surveyE.voteN}}</a></dd></p></td>");
+          document.write("<td><p><dd><font color=red>{{surveyE.voteN}}&nbsp;&nbsp;&nbsp;</font><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
 		
 	  document.write("</tr>");
         </script>
