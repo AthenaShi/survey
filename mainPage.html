@@ -54,7 +54,7 @@
     <table>
     {% for surveysU in surveyEntrysUser %}
     <tr>
-      <input type=hidden name=surveyID value = "{{ surveysU.surveyID }}">
+      <!--input type=hidden name=surveyID value = "{{ surveysU.surveyID }}"-->
       <td><p><dd><a href="/edit?surveyID={{ surveysU.surveyID }}" onClick="javascript:return confirm('Edit the survey will delete all the results of this survey. Do you want to continue?')">{{ surveysU.surveyID }}</a></dd></p></td>
     <form>
       <td><p><dd><INPUT TYPE = submit NAME = "delete{{ surveysU.surveyID }}" VALUE = "Delete" onClick="javascript:return confirm('Delete the survey will delete all the results of this survey. Do you want to continue?')"></dd></p></td>
