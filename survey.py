@@ -430,6 +430,8 @@ class MainPage(webapp.RequestHandler):
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
 		greeting = "Hello, "+user.nickname()+"~ "
+		if users.is_current_user_admin():
+			greeting = "Hello, ADMIN: "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
@@ -454,7 +456,10 @@ class MainPage(webapp.RequestHandler):
 	# surveyEntrysAll.order("")	Can be changed according to the display order...........
 
 	# get all surveyIDs the login user have access to...
-	surveyEntrysUser = Surveys.all().filter("userID", user)	#will be changed according to the user ID
+	surveyEntrysUser = Surveys.all()
+	if not users.is_current_user_admin():
+		surveyEntrysUser = surveyEntrysUser.filter("userID", user)	#will be changed according to the user ID		
+
 	# surveyEntrysUser .order("")	Can be changed according to the display order...........
 	# if done this survey before
 	votedSurvey = Votes.all().filter("userID", user)
