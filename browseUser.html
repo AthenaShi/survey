@@ -1,0 +1,87 @@
+<!-- Parameters in:
+	userName
+	surveyCreated
+	surveyVoted
+	surveyVotedME (surveys voted by the user, is a string, each surveyID separated by '\n')
+-->
+
+<head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+</head>
+
+<html>
+
+  <form>
+  <input type="hidden" name="userID" value="{{userName}}">
+
+  <h2>Browse Other User</h2></dd>
+
+  <body>
+    <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
+    <input type="hidden" id="surveyVotedME" name="variable" value="{{surveyVotedME}}">
+
+    <p><font size=3 color=purple>Surveys {{userName}} had voted:</font></p>
+    <table border=0 width=80%>
+    <tr>
+   <!-- 	<td style="color:#C6DEFF">~~~</td> -->
+	<td style="text-align:left" height=50>Choose the survey you wanna vote:</td> <td style="text-align:left">View results of the surveys:</th>
+    </tr>
+    {% for surveyE in surveyVoted %}
+        <script type="text/javascript">
+	  document.write("<tr>");
+          var surveyE = "{{surveyE.surveyID}}";
+          var allSurveyVoted = document.getElementById("surveyVotedME").value;
+	  var surveyVoted = allSurveyVoted.split("\n");
+	  var voted = false;
+	  for (var i=1; i<surveyVoted.length; i++) {
+            if (surveyE == surveyVoted[i]) {
+              voted = true;
+            }
+	  }
+//	  document.write("<td></td>");
+          if (voted) {
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+	  } else {
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+	  }
+          document.write("<td><p><dd><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+		
+	  document.write("</tr>");
+        </script>
+    {% endfor %}
+    </table>
+
+    <p><font size=3 color=purple>Surveys {{userName}} had created:</font></p>
+    <table border=0 width=80%>
+    <tr>
+   <!-- 	<td style="color:#C6DEFF">~~~</td> -->
+	<td style="text-align:left" height=50>Choose the survey you wanna vote:</td> <td style="text-align:left">View results of the surveys:</th>
+    </tr>
+    {% for surveyE in surveyCreated %}
+        <script type="text/javascript">
+	  document.write("<tr>");
+          var surveyE = "{{surveyE.surveyID}}";
+          var allSurveyVoted = document.getElementById("surveyVotedME").value;
+	  var surveyVoted = allSurveyVoted.split("\n");
+	  var voted = false;
+	  for (var i=1; i<surveyVoted.length; i++) {
+            if (surveyE == surveyVoted[i]) {
+              voted = true;
+            }
+	  }
+//	  document.write("<td></td>");
+          if (voted) {
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p></td>");
+	  } else {
+            document.write("<td><p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+	  }
+          document.write("<td><p><dd><a href=\"/results?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p></td>");
+		
+	  document.write("</tr>");
+        </script>
+    {% endfor %}
+    </table>
+    <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to Main Page"></dd></p>
+  </form>
+  </body>
+</html>

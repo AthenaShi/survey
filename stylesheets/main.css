@@ -1,24 +1,25 @@
 body {
   font-family: Verdana, Helvetica, sans-serif;
-  font-size: 15px;
+  font-size: 18px;
   background-color: #C6DEFF;
 }
 
 tr
 {
   font-family: Verdana, Helvetica, sans-serif;
-  font-size: 15px;
-  color:blue;
+  font-size: 18px;
 }
 
 h2
 {
   color:purple;
   text-align:center;
+  font-size: 40px;
 }
 
 h3
 {
   color:blue;
   text-align:center;
+  font-size: 35px;
 }

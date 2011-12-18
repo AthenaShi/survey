@@ -19,8 +19,13 @@ addNewQ = False
 hadQ = False
 thisQid = 1
 
+class Users(db.Model):
+	"""Models a user entry with just userID, loginDate."""
+	userID = db.UserProperty()
+	loginDate = db.DateTimeProperty()
+
 class Questions(db.Model):
-	"""Models anquestion entry with question, choices, multiple, answers, userID, surveyID, questionID."""
+	"""Models a question entry with question, choices, multiple, answers, userID, surveyID, questionID."""
 	question = db.StringProperty()
 	choices = db.StringProperty(multiline=True)
 	multiple = db.BooleanProperty()
@@ -33,6 +38,7 @@ class Surveys(db.Model):
 	"""Models a survey entry with surveyID, voteN, createDate, LastVoteDate."""
 	surveyID = db.StringProperty()
 	voteN = db.IntegerProperty()
+	userID = db.UserProperty()
 	createDate = db.DateTimeProperty()
 	LastVoteDate = db.DateTimeProperty()
 
@@ -41,6 +47,50 @@ class Votes(db.Model):
 	userID = db.UserProperty()
 	surveyID = db.StringProperty()
 	result = db.StringProperty(multiline=True)
+
+class BrowseUser(webapp.RequestHandler):
+    def get(self):
+	form = cgi.FieldStorage()
+	userName = form["userID"].value
+	# get the login user 
+	user = users.get_current_user()
+	if user:
+		url = users.create_logout_url(self.request.uri)
+		url_linktext = 'Logout'
+		greeting = "Hello, "+user.nickname()+"~ "
+	else:
+		url = users.create_login_url(self.request.uri)
+		url_linktext = 'Login'
+		greeting = "Hello, please: "
+	# get the browsed user
+	allUsers = Users.all()
+	for userEntry in allUsers:
+		if (userEntry.userID.nickname() == userName):
+			userBrowsed = userEntry.userID
+	# get survey that user created
+	surveyCreated = Surveys.all().filter("userID", userBrowsed)
+	# get survey that user voted
+	surveyVoted = Votes.all().filter("userID", userBrowsed)
+	path = os.path.join(os.path.dirname(__file__), 'browseUser.html')
+	# if done those survey before
+	votedSurveyME = Votes.all().filter("userID", user)
+	surveyVotedME = "blah"
+	for surveyII in votedSurveyME:
+		surveyVotedME = surveyVotedME+"\n"+surveyII.surveyID
+	# get all users
+
+	template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+			'userName': userName,
+			'surveyCreated': surveyCreated,
+			'surveyVoted': surveyVoted,
+			'surveyVotedME': surveyVotedME,
+	}
+	self.response.out.write(template.render(path, template_values))
+	if (form.has_key("back")):
+		self.redirect('/')
 
 class EditSurvey(webapp.RequestHandler):
     def get(self):
@@ -52,7 +102,7 @@ class EditSurvey(webapp.RequestHandler):
 	if user:
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
-		greeting = "Hello, "+user.nickname()+"! "
+		greeting = "Hello, "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
@@ -195,6 +245,7 @@ class EditSurvey(webapp.RequestHandler):
 		for surveyEntry in surveyToUpdate:
 			surveyEntry.voteN = 0
 			surveyEntry.CreateDate = datetime.datetime.now()
+			surveyEntry.userID = user
 			surveyEntry.put()
 		# update Votes database
 		votes4surveyID = Votes.all().filter("surveyID", surveyID)
@@ -225,7 +276,7 @@ class ShowResults(webapp.RequestHandler):
 	if user:
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
-		greeting = "Hello, "+user.nickname()+"! "
+		greeting = "Hello, "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
@@ -254,7 +305,7 @@ class VoteSurvey(webapp.RequestHandler):
 	if user:
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
-		greeting = "Hello, "+user.nickname()+"! "
+		greeting = "Hello, "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
@@ -309,8 +360,8 @@ class VoteSurvey(webapp.RequestHandler):
 				surveyEntry.LastVoteDate = datetime.datetime.now()
 				surveyEntry.put()
 			# update Votes database
-			Votes(  #userID = "athena",
-				surveyID = surveyID, key_name=surveyID, #should be changed to surveyID + userID
+			Votes(  userID = user,
+				surveyID = surveyID, key_name=surveyID+str(user), #should be changed to surveyID + userID
 				result = votes ).put()
 #			self.response.out.write(votes+" <br />")		# just for testing, will be deleted
 			self.redirect("/results?surveyID="+surveyID)
@@ -327,12 +378,12 @@ class MainPage(webapp.RequestHandler):
 	if user:
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
-		greeting = "Hello, "+user.nickname()+"! "
+		greeting = "Hello, "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
 		greeting = "Hello, please: "
-
+	Users(userID=user, loginDate=datetime.datetime.now(),key_name=str(user)).put()
 	# get all surveyIDs we already have
 	surveyEntrysAll = Surveys.all()
 	# surveyEntrysAll.order("")	Can be changed according to the display order...........
@@ -341,15 +392,23 @@ class MainPage(webapp.RequestHandler):
 	surveyEntrysUser = Surveys.all().filter("userID", user)	#will be changed according to the user ID
 	# surveyEntrysUser .order("")	Can be changed according to the display order...........
 	# if done this survey before
-	doneBefore = False
-#	votesUser = Votes.all().filter("userID", user).filter("surveyID", surveyID)
-
+	votedSurvey = Votes.all().filter("userID", user)
+	surveyVoted = "blah"
+	for surveyII in votedSurvey:
+		surveyVoted = surveyVoted+"\n"+surveyII.surveyID
+	# get all users
+	allusers = Users.all()
+	allusersArray = []
+	for userEntry in allusers:
+		allusersArray.append(userEntry.userID.nickname())
         template_values = {
 	    'greeting': greeting,
 	    'url': url,
             'url_linktext': url_linktext,
+            'allusersArray': allusersArray,
             'surveyEntrysAll': surveyEntrysAll,
             'surveyEntrysUser': surveyEntrysUser,
+            'surveyVoted': surveyVoted,
         }
         path = os.path.join(os.path.dirname(__file__), 'mainPage.html')
         self.response.out.write(template.render(path, template_values))
@@ -388,7 +447,7 @@ class CreateSurvey(webapp.RequestHandler):
 	if user:
 		url = users.create_logout_url(self.request.uri)
 		url_linktext = 'Logout'
-		greeting = "Hello, "+user.nickname()+"! "
+		greeting = "Hello, "+user.nickname()+"~ "
 	else:
 		url = users.create_login_url(self.request.uri)
 		url_linktext = 'Login'
@@ -442,7 +501,7 @@ class CreateSurvey(webapp.RequestHandler):
 	# if surveyID is valid
 	if (surveyIDvalid and form.has_key("test")):
 		addNewQ = False
-		Surveys(surveyID=surveyID, key_name=surveyID, voteN = 0, createDate = datetime.datetime.now()).put()
+		Surveys(surveyID=surveyID, key_name=surveyID, userID = user, voteN = 0, createDate = datetime.datetime.now()).put()
 		self.response.clear()
 		template_values = {
 			'greeting': greeting,
@@ -488,6 +547,7 @@ class CreateSurvey(webapp.RequestHandler):
 				  multiple = multiple,
 				  surveyID = surveyID,
 				  questionID = thisQid,
+				  userID = user,
 				  key_name=surveyID+str(thisQid)).put()
 			# set site consistant with database
 			self.response.clear()
@@ -597,6 +657,13 @@ class CreateSurvey(webapp.RequestHandler):
 		path = os.path.join(os.path.dirname(__file__), 'createDone.html')
 		self.response.out.write(template.render(path, template_values))
 	
+	if (form.has_key("cancel")):
+		if (form["cancel"].value == "Abort"):
+			surveyToDelete = Surveys.all().filter("surveyID", surveyID)
+			for surveyToD in surveyToDelete:
+				surveyToD.delete()
+		self.redirect('/')
+
 	if (form.has_key("back")):
 		self.redirect('/')
 
@@ -618,6 +685,7 @@ class CreateSurvey(webapp.RequestHandler):
 application = webapp.WSGIApplication([
   ('/', MainPage),
   ('/create', CreateSurvey),
+  ('/browse', BrowseUser),
   ('/vote', VoteSurvey),
   ('/edit', EditSurvey),
   ('/results', ShowResults),

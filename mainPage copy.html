@@ -1,6 +1,7 @@
 <!-- Parameters in: 
-	surveysAlready (contains curveys that already have)
-	surveysMine (surveys that created by the user)
+	surveyEntrysAll (contains curveys that already have)
+	surveyEntrysUser (surveys that created by the user)
+	surveyVoted (surveys voted by the user, is a string, each surveyID separated by '\n')
 -->
 
 <head>
@@ -12,15 +13,38 @@
   <h2>Survey Website</h2></dd>
 
   <body>
+    <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
     <dd><p>You may:</p></dd>
     <p>1. Choose the survey you wanna vote or revote:</p>
-    {% for surveys in surveysAlready %}
-       <p><dd><u>{{ surveys }}</u></dd></p>
+    <input type="hidden" id="surveyVoted" name="variable" value="{{surveyVoted}}">
+
+    {% for surveyE in surveyEntrysAll %}
+        <script type="text/javascript">
+          var surveyE = "{{surveyE.surveyID}}";
+          var allSurveyVoted = document.getElementById("surveyVoted").value;
+	  var surveyVoted = allSurveyVoted.split("\n");
+	  var voted = false;
+	  for (var i=1; i<surveyVoted.length; i++) {
+            if (surveyE == surveyVoted[i]) {
+              voted = true;
+            }
+	  }
+          if (voted) {
+            document.write("<p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\" onClick=\"javascript:return confirm(\'You\\\'ve already voted. Do you like to change your answer?\')\">{{ surveyE.surveyID }}</a><font color=red>&nbsp;&nbsp;&nbsp;Voted~</font></dd></p>");
+	  } else {
+            document.write("<p><dd><a href=\"/vote?surveyID={{ surveyE.surveyID }}\">{{ surveyE.surveyID }}</a></dd></p>");
+	  }
+        </script>
     {% endfor %}
 
-    <p>2. Create or Edit your own surveys:</p>
-    {% for surveysm in surveysMine %}
-       <p><dd><u>{{ surveysm }}</u></dd></p>
+    <p>2. View results of all surveys:</p>
+    {% for surveyE in surveyEntrysAll %}
+       <p><dd><a href="/results?surveyID={{ surveyE.surveyID }}">{{ surveyE.surveyID }}</a></dd></p>
+    {% endfor %}
+
+    <p>3. Edit or Create your own surveys:</p>
+    {% for surveysU in surveyEntrysUser %}
+       <p><dd><a href="/edit?surveyID={{ surveysU.surveyID }}" onClick="javascript:return confirm('Edit the survey will delete all the results of this survey. Do you want to continue?')">{{ surveysU.surveyID }}</a></dd></p>
     {% endfor %}
 
      <form>
