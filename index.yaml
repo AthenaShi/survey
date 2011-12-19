@@ -9,7 +9,12 @@ indexes:
   properties:
   - name: userID
   - name: surveyID
- 
+
+- kind: Comments
+  properties:
+  - name: surveyID
+  - name: postDate
+
 - kind: Surveys
   properties:
   - name: voteN

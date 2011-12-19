@@ -74,9 +74,9 @@
       {% for commentEntry in commentShows %}
         <tr><td style="color:#C6DEFF">~~~~~~</td><td>
 
-        <input type="hidden" id="commentL" name="variable" value="{{ commentEntry.comments }}">
+        <input type="hidden" id="comment{{ commentEntry.postDate }}" name="variable" value="{{ commentEntry.comments }}">
         <script type="text/javascript">
-        var comments = document.getElementById("commentL").value;
+        var comments = document.getElementById("comment{{ commentEntry.postDate }}").value;
         comments = comments.replace(/\n\r?/g, '<br />');
         document.write(comments);
       </script>

@@ -338,7 +338,7 @@ class ShowResults(webapp.RequestHandler):
 	}
 	path = os.path.join(os.path.dirname(__file__), 'results.html')
 	self.response.out.write(template.render(path, template_values))
-	if (form.has_key("post")):
+	if (form.has_key("post") and form.has_key("comments")):
 		comments = form["comments"].value
 		Comments(surveyID = surveyID,
 			userID = user,
@@ -522,6 +522,9 @@ class MainPage(webapp.RequestHandler):
 	for surveyDelete in surveyToBeDeleted:
 		surveyName = surveyDelete.surveyID
 		if (form.has_key("delete"+surveyName)):	# "delete{{ surveysU.surveyID }}"
+			# delete surveyID from Comments DB
+			for surveyInComments in Comments.all().filter("surveyID", surveyName):
+				surveyInComments.delete()
 			# delete surveyID from Surveys DB
 			surveyDelete.delete()
 			# delete surveyID from Votes DB
@@ -793,21 +796,6 @@ class CreateSurvey(webapp.RequestHandler):
 
 	if (form.has_key("back")):
 		self.redirect('/')
-
-	# just for testing...
-	self.response.out.write("<br />*******just for testing******<br />")
-	surveyShows = Surveys.all()	# will be deleted
-	self.response.out.write('Already had questions: '+ str(hadQ) + "<br />")
-	self.response.out.write('Last question ID: '+ str(thisQid) + "<br />")
-	for surveyII in surveyShows:	# will be deleted
-		voteN = str(surveyII.voteN)	# will be deleted
-		self.response.out.write("Survey Name: "+surveyII.surveyID+" ; Vote Number: "+voteN+"<br />")	# will be deleted
-	self.response.out.write('surveyID: '+ surveyID + "<br />")
-	sIe = str(surveyIDempty)
-	sIv = str(surveyIDvalid)
-	self.response.out.write('surveyIDempty: '+ sIe + "<br />")
-	self.response.out.write('surveyIDvalid: '+ sIv + "<br />")
-	self.response.out.write('addNewQ: '+ str(addNewQ) + "<br />")
 
 application = webapp.WSGIApplication([
   ('/', MainPage),
