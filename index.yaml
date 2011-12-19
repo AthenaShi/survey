@@ -14,9 +14,9 @@ indexes:
   properties:
   - name: surveyID
   - name: postDate
-
 - kind: Surveys
   properties:
+  - name: surveyID
   - name: voteN
     direction: desc
   - name: LastVoteDate
