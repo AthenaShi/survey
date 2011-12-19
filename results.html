@@ -1,6 +1,7 @@
 <!-- Parameters in:
 	surveyID
 	questionShows
+	commentShows
 -->
 
 <head>
@@ -48,7 +49,6 @@
         }
       }
       
-      // show by stars ******** I know it's ugly... -_-!!!
       for (var i=0; i<choices.length; i++) {
         var length = parseInt(answers[i]) * 60 / allORmax ;
         var perc = parseInt(answers[i]) * 100 / allORmax ;
@@ -66,12 +66,30 @@
 	document.write("</td>");
         document.write("</tr>");
       }
-//      document.write("</table>");
       </script>
-
     {% endfor %}
       </table>
-       <p><dd><INPUT TYPE = submit NAME = "back" VALUE = "Back to Main Page"></dd></p>
+      <br />
+      <table width=50%>
+      {% for commentEntry in commentShows %}
+        <tr><td style="color:#C6DEFF">~~~~~~</td><td>
+
+        <input type="hidden" id="commentL" name="variable" value="{{ commentEntry.comments }}">
+        <script type="text/javascript">
+        var comments = document.getElementById("commentL").value;
+        comments = comments.replace(/\n\r?/g, '<br />');
+        document.write(comments);
+      </script>
+
+        </td></tr>
+	<tr><td></td><td>Posted by: {{ commentEntry.userID }} at {{ commentEntry.postDate }}</td></tr>
+	<tr><td></td><td><hr align=left color=blue></td></tr>
+
+      {% endfor %}
+      </table>
+      <h4> Comments: </h4>
+      <dd><p><textarea NAME="comments" ROWS="10" COLS="100" ></textarea></p></dd>
+       <p><dd><INPUT TYPE = submit NAME = "post" VALUE = "Post"><INPUT TYPE = submit NAME = "back" VALUE = "Back to Main Page"></dd></p>
     </form> 
     <hr /> <p style = "text-align:center;font-size:14px">Developed by Lin Shi.</p>
 

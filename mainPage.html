@@ -12,9 +12,16 @@
 <html>
 
   <h2>Survey Website</h2></dd>
-
   <body>
     <p style="text-align:right">{{greeting}} <a href="{{ url }}">{{ url_linktext }}</a></p>
+    <form>
+    <p style="text-align:right"><input type=text name="keyword">
+    	<select name=select>
+	<option value=name selected>Name</option>
+	</select>
+	<INPUT TYPE = submit NAME = "search" VALUE = "Search"><p>
+    </form>
+
     <p><font size=3 color=#FF1493>Surveys shown by popularity order:</font></p>
     <input type="hidden" id="surveyVoted" name="variable" value="{{surveyVoted}}">
 

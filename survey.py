@@ -19,6 +19,13 @@ addNewQ = False
 hadQ = False
 thisQid = 1
 
+class Comments(db.Model):
+	"""Models a user entry with just userID, loginDate."""
+	surveyID = db.StringProperty()
+	userID = db.UserProperty()
+	comments = db.StringProperty(multiline=True)
+	postDate = db.DateTimeProperty()
+
 class Users(db.Model):
 	"""Models a user entry with just userID, loginDate."""
 	userID = db.UserProperty()
@@ -208,6 +215,7 @@ class EditSurvey(webapp.RequestHandler):
 				'questionShows': questionShows,
 				'thisQid': thisQid,
 			}
+		
 			self.response.out.write(template.render(path, template_values))
 			# update database
 			for questionEntry in questionShows:
@@ -319,15 +327,35 @@ class ShowResults(webapp.RequestHandler):
 		greeting = "Hello, please: "
 	# get questions to show
 	questionShows = Questions.all().filter("surveyID", surveyID).order("questionID")
+	commentShows = Comments.all().filter("surveyID", surveyID).order("postDate")
 	template_values = {
 		'greeting': greeting,
 		'url': url,
 		'url_linktext': url_linktext,
 		'surveyID': surveyID,
 		'questionShows': questionShows,
+		'commentShows': commentShows,
 	}
 	path = os.path.join(os.path.dirname(__file__), 'results.html')
 	self.response.out.write(template.render(path, template_values))
+	if (form.has_key("post")):
+		comments = form["comments"].value
+		Comments(surveyID = surveyID,
+			userID = user,
+			comments = comments,
+			postDate =  datetime.datetime.now() ).put()
+		self.response.clear()
+		template_values = {
+			'greeting': greeting,
+			'url': url,
+			'url_linktext': url_linktext,
+			'surveyID': surveyID,
+			'questionShows': questionShows,
+			'commentShows': commentShows,
+		}
+		path = os.path.join(os.path.dirname(__file__), 'results.html')
+		self.response.out.write(template.render(path, template_values))
+
 	if (form.has_key("back")):
 		self.redirect('/')
 
@@ -459,8 +487,14 @@ class MainPage(webapp.RequestHandler):
 	surveyEntrysUser = Surveys.all()
 	if not users.is_current_user_admin():
 		surveyEntrysUser = surveyEntrysUser.filter("userID", user)	#will be changed according to the user ID		
+	# if search
+	form = cgi.FieldStorage()
+	if (form.has_key("search")):
+		if (form.has_key("keyword")):
+			surveyEntrysAll = surveyEntrysAll.filter("surveyID",form["keyword"].value)
+		else:
+			surveyEntrysAll = Surveys.all().order("-voteN").order("-LastVoteDate").order("-createDate")
 
-	# surveyEntrysUser .order("")	Can be changed according to the display order...........
 	# if done this survey before
 	votedSurvey = Votes.all().filter("userID", user)
 	surveyVoted = "blah"
@@ -482,7 +516,7 @@ class MainPage(webapp.RequestHandler):
         }
         path = os.path.join(os.path.dirname(__file__), 'mainPage.html')
         self.response.out.write(template.render(path, template_values))
-	form = cgi.FieldStorage()
+
 
 	surveyToBeDeleted = Surveys.all().filter("userID", user)
 	for surveyDelete in surveyToBeDeleted:
